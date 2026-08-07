@@ -8,7 +8,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import OpenBioLogo from '@/public/openbio.png';
 import { api } from '@/trpc/react';
-import { AtSign, Link2, Loader2, Plus, Sparkles, X } from 'lucide-react';
+import {
+  AtSign,
+  Link2,
+  Loader2,
+  MessageCircle,
+  Plus,
+  Sparkles,
+  X,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -21,6 +29,7 @@ import {
   FaInstagram,
   FaLinkedinIn,
   FaTwitch,
+  FaWhatsapp,
   FaYoutube,
 } from 'react-icons/fa';
 
@@ -89,6 +98,7 @@ const SOCIAL_ACTIONS: Record<string, string> = {
 };
 
 const PROTOCOL_RE = /^https?:\/\//;
+const NON_DIGIT_RE = /\D/g;
 
 function normalizeUrl(raw: string) {
   const trimmed = raw.trim();
@@ -96,6 +106,35 @@ function normalizeUrl(raw: string) {
     return '';
   }
   return PROTOCOL_RE.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
+
+function buildWhatsAppUrl(number: string, message: string) {
+  const digits = number.replace(NON_DIGIT_RE, '');
+  if (!digits) {
+    return '';
+  }
+  const query = message.trim()
+    ? `?text=${encodeURIComponent(message.trim())}`
+    : '';
+  return `https://wa.me/${digits}${query}`;
+}
+
+function WhatsAppPreviewCard() {
+  return (
+    <div className="flex h-full flex-col justify-between rounded-xl border border-border/50 bg-card p-3 shadow-sm">
+      <div className="flex items-start justify-between">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#25D366]/5">
+          <FaWhatsapp size={16} className="text-[#25D366]" />
+        </div>
+        <span className="rounded-full bg-foreground px-2.5 py-0.5 text-[9px] text-background">
+          Message
+        </span>
+      </div>
+      <div className="mt-2">
+        <p className="truncate font-medium text-[10px]">WhatsApp</p>
+      </div>
+    </div>
+  );
 }
 
 function CustomLinkPreviewCard({ url }: { url: string }) {
@@ -170,6 +209,8 @@ export default function Page() {
   const [bio, setBio] = useState('');
   const [socials, setSocials] = useState<Record<string, string>>({});
   const [customLinks, setCustomLinks] = useState<string[]>(['']);
+  const [whatsapp, setWhatsapp] = useState('');
+  const [whatsappMessage, setWhatsappMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
   const { mutateAsync: createLink } = api.profileLink.create.useMutation();
@@ -189,8 +230,12 @@ export default function Page() {
 
   const filledSocials = Object.entries(socials).filter(([, v]) => v);
   const filledCustomLinks = customLinks.map(normalizeUrl).filter(Boolean);
+  const whatsappUrl = buildWhatsAppUrl(whatsapp, whatsappMessage);
+  const allCustomLinks = whatsappUrl
+    ? [...filledCustomLinks, whatsappUrl]
+    : filledCustomLinks;
   const customLinksPayload =
-    filledCustomLinks.length > 0 ? filledCustomLinks : undefined;
+    allCustomLinks.length > 0 ? allCustomLinks : undefined;
 
   const handlePublish = async () => {
     if (!link || !name) {
@@ -311,6 +356,34 @@ export default function Page() {
               </div>
             </div>
 
+            {/* WhatsApp */}
+            <div className="space-y-3">
+              <Label className="font-medium text-sm">WhatsApp</Label>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-background px-3 py-2.5">
+                  <FaWhatsapp className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <input
+                    className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                    placeholder="5511999999999"
+                    value={whatsapp}
+                    onChange={(e) => setWhatsapp(e.target.value)}
+                  />
+                </div>
+                <div className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-background px-3 py-2.5">
+                  <MessageCircle className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <input
+                    className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                    placeholder="Custom message (optional)"
+                    value={whatsappMessage}
+                    onChange={(e) => setWhatsappMessage(e.target.value)}
+                  />
+                </div>
+              </div>
+              <p className="text-muted-foreground text-xs">
+                Include the country code, digits only (e.g. 5511999999999).
+              </p>
+            </div>
+
             {/* Custom Links */}
             <div className="space-y-3">
               <Label className="font-medium text-sm">Links</Label>
@@ -411,7 +484,8 @@ export default function Page() {
 
                   {/* Bento grid preview */}
                   {(filledSocials.length > 0 ||
-                    filledCustomLinks.length > 0) && (
+                    filledCustomLinks.length > 0 ||
+                    whatsappUrl) && (
                     <div className="mt-4 grid grid-cols-2 gap-2">
                       {filledSocials.map(([platform, username]) => {
                         const social = SOCIALS.find((s) => s.key === platform);
@@ -427,6 +501,7 @@ export default function Page() {
                           />
                         );
                       })}
+                      {whatsappUrl && <WhatsAppPreviewCard />}
                       {filledCustomLinks.map((url) => (
                         <CustomLinkPreviewCard key={url} url={url} />
                       ))}
@@ -435,7 +510,8 @@ export default function Page() {
 
                   {/* Empty state */}
                   {filledSocials.length === 0 &&
-                    filledCustomLinks.length === 0 && (
+                    filledCustomLinks.length === 0 &&
+                    !whatsappUrl && (
                       <div className="mt-4 grid grid-cols-2 gap-2">
                         {[1, 2, 3, 4].map((i) => (
                           <div

@@ -290,12 +290,14 @@ function CardWrapper({
   className,
   children,
   onEdit,
+  listMode,
 }: {
   bento: BentoData;
   editable?: boolean;
   className?: string;
   children: React.ReactNode;
   onEdit?: () => void;
+  listMode?: boolean;
 }) {
   const { link: linkSlug } = useParams<{ link: string }>();
   const { data: profileLink } = api.profileLink.getByLink.useQuery(
@@ -329,7 +331,12 @@ function CardWrapper({
         className
       )}
     >
-      {editable && <CardOverlay bento={bento} allowedSizes={LINK_CARD_SIZES} />}
+      {editable && (
+        <CardOverlay
+          bento={bento}
+          allowedSizes={listMode ? [] : LINK_CARD_SIZES}
+        />
+      )}
       {children}
       {editable && onEdit && (
         <button
@@ -419,12 +426,14 @@ function BannerLayout({
   metadata,
   title,
   onEdit,
+  listMode,
 }: {
   bento: BentoData;
   editable?: boolean;
   metadata?: Metadata;
   title?: string | null;
   onEdit?: () => void;
+  listMode?: boolean;
 }) {
   return (
     <CardWrapper
@@ -432,6 +441,7 @@ function BannerLayout({
       editable={editable}
       className="flex items-center gap-x-3 px-5"
       onEdit={onEdit}
+      listMode={listMode}
     >
       <IconBadge href={bento.href ?? ''} metadata={metadata} size="sm" />
       <span className="truncate font-cal text-sm">{title}</span>
@@ -531,9 +541,11 @@ function WideLayout({
 export default function LinkCard({
   bento,
   editable,
+  listMode,
 }: {
   bento: BentoData;
   editable?: boolean;
+  listMode?: boolean;
 }) {
   const params = useParams<{ link: string }>();
   const [editOpen, setEditOpen] = useState(false);
@@ -577,13 +589,14 @@ export default function LinkCard({
   const onEdit = editable ? () => setEditOpen(true) : undefined;
 
   const layout =
-    smSize === '4x1' || mdSize === '4x1' ? (
+    listMode || smSize === '4x1' || mdSize === '4x1' ? (
       <BannerLayout
         bento={bento}
         editable={editable}
         metadata={metadata ?? undefined}
         title={title}
         onEdit={onEdit}
+        listMode={listMode}
       />
     ) : mdSize === '4x2' ? (
       <WideLayout

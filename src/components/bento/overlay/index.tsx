@@ -28,6 +28,7 @@ export default function CardOverlay({
     viewport === 'mobile' ||
     (typeof window !== 'undefined' && window.innerWidth < 600);
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
+  const canResize = allowedSizes === undefined || allowedSizes.length > 0;
 
   useEffect(() => {
     const gridItem = overlayRef.current?.closest(
@@ -134,7 +135,7 @@ export default function CardOverlay({
           <DragHandle />
 
           {/* Mobile: show a resize button that opens the size picker */}
-          {isMobile && !sizePickerOpen && (
+          {canResize && isMobile && !sizePickerOpen && (
             <button
               type="button"
               className="-translate-y-1/2 absolute top-0 right-3 z-30 flex h-7 w-7 items-center justify-center rounded-lg border border-border/50 bg-background/90 shadow-md backdrop-blur-sm transition-colors hover:bg-accent active:scale-95"
@@ -145,7 +146,7 @@ export default function CardOverlay({
           )}
 
           {/* Mobile: portal size picker only when explicitly opened */}
-          {isMobile && sizePickerOpen && (
+          {canResize && isMobile && sizePickerOpen && (
             <ManageSize
               bento={bento}
               close={closeSizePicker}
@@ -154,7 +155,7 @@ export default function CardOverlay({
           )}
 
           {/* Desktop: always show size picker on hover */}
-          {!isMobile && (
+          {canResize && !isMobile && (
             <ManageSize
               bento={bento}
               close={() => setActive(false)}

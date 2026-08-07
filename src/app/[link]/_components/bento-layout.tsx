@@ -20,12 +20,15 @@ import { usePreview } from './preview-context';
 
 function bentoToLayoutItem(
   b: z.infer<typeof BentoSchema>,
-  breakpoint: 'sm' | 'md'
+  breakpoint: 'sm' | 'md',
+  listMode: boolean
 ) {
-  const { w, h } = sizeToGrid(b.size[breakpoint], breakpoint);
+  const { w, h } = listMode
+    ? { w: 1, h: 1 }
+    : sizeToGrid(b.size[breakpoint], breakpoint);
   return {
     i: b.id,
-    x: b.position[breakpoint]?.x ?? 0,
+    x: listMode ? 0 : (b.position[breakpoint]?.x ?? 0),
     y: b.position[breakpoint]?.y ?? 0,
     w,
     h,
@@ -66,8 +69,10 @@ function findChangedPositions(
 
 export default function BentoLayout({
   children,
+  listMode = false,
 }: {
   children: React.ReactNode;
+  listMode?: boolean;
 }) {
   const { link } = useParams<{ link: string }>();
   const ResponsiveGridLayout = useMemo(
@@ -91,10 +96,10 @@ export default function BentoLayout({
 
   const layouts = useMemo(
     () => ({
-      sm: bentos.map((b) => bentoToLayoutItem(b, 'sm')),
-      md: bentos.map((b) => bentoToLayoutItem(b, 'md')),
+      sm: bentos.map((b) => bentoToLayoutItem(b, 'sm', listMode)),
+      md: bentos.map((b) => bentoToLayoutItem(b, 'md', listMode)),
     }),
-    [bentos]
+    [bentos, listMode]
   );
 
   const onLayoutChange = useCallback(
@@ -130,10 +135,14 @@ export default function BentoLayout({
     <ResponsiveGridLayout
       className="layout"
       layouts={layouts}
-      cols={{ xxs: 2, xs: 2, sm: 2, md: 4, lg: 4 }}
+      cols={
+        listMode
+          ? { xxs: 1, xs: 1, sm: 1, md: 1, lg: 1 }
+          : { xxs: 2, xs: 2, sm: 2, md: 4, lg: 4 }
+      }
       breakpoints={{ lg: 800, md: 600, sm: 300, xs: 0, xxs: 0 }}
-      rowHeight={176}
-      margin={[24, 24]}
+      rowHeight={listMode ? 76 : 176}
+      margin={listMode ? [0, 12] : [24, 24]}
       containerPadding={[0, 0]}
       draggableHandle={
         typeof window !== 'undefined' && window.innerWidth < 600

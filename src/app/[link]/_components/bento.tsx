@@ -23,8 +23,12 @@ export default function Bento({
     return null;
   }
 
+  const listMode =
+    profileLink.bento.length > 0 &&
+    profileLink.bento.every((b) => b.type === 'link');
+
   return (
-    <BentoLayout>
+    <BentoLayout listMode={listMode}>
       {profileLink.bento.map((b, i) => (
         <div key={b.id}>
           <div
@@ -35,6 +39,7 @@ export default function Bento({
               bento={b}
               editable={profileLink.isOwner && !preview}
               linkId={profileLink.id}
+              listMode={listMode}
             />
           </div>
         </div>

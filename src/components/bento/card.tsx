@@ -20,13 +20,15 @@ export default function BentoCard({
   bento,
   editable,
   linkId,
+  listMode,
 }: {
   bento: z.infer<typeof BentoSchema>;
   editable?: boolean;
   linkId?: string;
+  listMode?: boolean;
 }) {
   if (bento.type === 'link') {
-    return <LinkCard bento={bento} editable={editable} />;
+    return <LinkCard bento={bento} editable={editable} listMode={listMode} />;
   }
 
   if (bento.type === 'note') {

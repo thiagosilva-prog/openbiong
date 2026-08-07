@@ -17,13 +17,40 @@ type SelectProfileLinkColumns = {
   userId?: boolean | undefined;
 };
 
+const CACHE_TTL_SECONDS = 30 * 60;
+
+// Caching is best-effort: a Redis outage or misconfiguration should never
+// take down profile pages, so failures here are swallowed rather than thrown.
+async function getCachedProfileLink(inputLink: string) {
+  try {
+    return await redis.get<InferSelectModel<typeof link> | null>(
+      `profile-link:${inputLink}`
+    );
+  } catch {
+    return null;
+  }
+}
+
+async function cacheProfileLink(
+  result: InferSelectModel<typeof link> | undefined
+) {
+  if (!result) {
+    return;
+  }
+  try {
+    await redis.set(`profile-link:${result.link}`, result, {
+      ex: CACHE_TTL_SECONDS,
+    });
+  } catch {
+    // ignore — see comment above
+  }
+}
+
 export const getProfileLinkByLink = async (
   inputLink: string,
   columns?: SelectProfileLinkColumns
 ) => {
-  const cached = await redis.get<InferSelectModel<typeof link> | null>(
-    `profile-link:${inputLink}`
-  );
+  const cached = await getCachedProfileLink(inputLink);
 
   if (cached) {
     return cached;
@@ -34,11 +61,7 @@ export const getProfileLinkByLink = async (
     columns,
   });
 
-  if (result) {
-    await redis.set(`profile-link:${inputLink}`, result, {
-      ex: 30 * 60,
-    });
-  }
+  await cacheProfileLink(result);
 
   return result;
 };
@@ -92,9 +115,7 @@ export const createProfileLink = async (data: {
 }) => {
   const result = await db.insert(link).values(data).returning().execute();
 
-  await redis.set(`profile-link:${data.link}`, result[0], {
-    ex: 30 * 60,
-  });
+  await cacheProfileLink(result[0]);
 
   return result[0];
 };
@@ -142,9 +163,7 @@ export const updateProfileLink = async (data: {
     .returning()
     .execute();
 
-  await redis.set(`profile-link:${result[0]?.link}`, result[0], {
-    ex: 30 * 60,
-  });
+  await cacheProfileLink(result[0]);
 
   return result[0];
 };
@@ -152,7 +171,11 @@ export const updateProfileLink = async (data: {
 export const deleteProfileLink = async (inputLink: string) => {
   await db.delete(link).where(eq(link.link, inputLink)).execute();
 
-  await redis.del(`profile-link:${inputLink}`);
+  try {
+    await redis.del(`profile-link:${inputLink}`);
+  } catch {
+    // ignore — caching is best-effort
+  }
 };
 
 export const addProfileLinkBento = async (
@@ -170,9 +193,7 @@ export const addProfileLinkBento = async (
     .returning()
     .execute();
 
-  await redis.set(`profile-link:${result[0]?.link}`, result[0], {
-    ex: 30 * 60,
-  });
+  await cacheProfileLink(result[0]);
 
   return result[0]?.bento;
 };
@@ -192,9 +213,7 @@ export const deleteProfileLinkBento = async (
     .returning()
     .execute();
 
-  await redis.set(`profile-link:${result[0]?.link}`, result[0], {
-    ex: 30 * 60,
-  });
+  await cacheProfileLink(result[0]);
 };
 
 export const updateProfileLinkBento = async (
@@ -214,7 +233,5 @@ export const updateProfileLinkBento = async (
     .returning()
     .execute();
 
-  await redis.set(`profile-link:${result[0]?.link}`, result[0], {
-    ex: 30 * 60,
-  });
+  await cacheProfileLink(result[0]);
 };
