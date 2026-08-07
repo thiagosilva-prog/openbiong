@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import OpenBioLogo from '@/public/openbio.png';
 import { api } from '@/trpc/react';
-import { AtSign, Loader2, Sparkles } from 'lucide-react';
+import { AtSign, Link2, Loader2, Plus, Sparkles, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -88,6 +88,41 @@ const SOCIAL_ACTIONS: Record<string, string> = {
   twitch: 'Follow',
 };
 
+const PROTOCOL_RE = /^https?:\/\//;
+
+function normalizeUrl(raw: string) {
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    return '';
+  }
+  return PROTOCOL_RE.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
+
+function CustomLinkPreviewCard({ url }: { url: string }) {
+  let hostname = url;
+  try {
+    hostname = new URL(url).hostname.replace('www.', '');
+  } catch {
+    // keep raw url as fallback label
+  }
+
+  return (
+    <div className="flex h-full flex-col justify-between rounded-xl border border-border/50 bg-card p-3 shadow-sm">
+      <div className="flex items-start justify-between">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
+          <Link2 size={16} className="text-foreground" />
+        </div>
+        <span className="rounded-full bg-foreground px-2.5 py-0.5 text-[9px] text-background">
+          Visit
+        </span>
+      </div>
+      <div className="mt-2">
+        <p className="truncate font-medium text-[10px]">{hostname}</p>
+      </div>
+    </div>
+  );
+}
+
 function PreviewCard({
   platform,
   username,
@@ -134,6 +169,7 @@ export default function Page() {
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
   const [socials, setSocials] = useState<Record<string, string>>({});
+  const [customLinks, setCustomLinks] = useState<string[]>(['']);
   const [loading, setLoading] = useState(false);
 
   const { mutateAsync: createLink } = api.profileLink.create.useMutation();
@@ -142,7 +178,19 @@ export default function Page() {
     setSocials((prev) => ({ ...prev, [key]: value }));
   };
 
+  const handleCustomLinkChange = (index: number, value: string) => {
+    setCustomLinks((prev) => prev.map((v, i) => (i === index ? value : v)));
+  };
+
+  const addCustomLink = () => setCustomLinks((prev) => [...prev, '']);
+
+  const removeCustomLink = (index: number) =>
+    setCustomLinks((prev) => prev.filter((_, i) => i !== index));
+
   const filledSocials = Object.entries(socials).filter(([, v]) => v);
+  const filledCustomLinks = customLinks.map(normalizeUrl).filter(Boolean);
+  const customLinksPayload =
+    filledCustomLinks.length > 0 ? filledCustomLinks : undefined;
 
   const handlePublish = async () => {
     if (!link || !name) {
@@ -162,6 +210,7 @@ export default function Page() {
         discord: socials.discord || undefined,
         youtube: socials.youtube || undefined,
         twitch: socials.twitch || undefined,
+        customLinks: customLinksPayload,
       });
       router.push(`/${link}`);
     } catch {
@@ -262,6 +311,48 @@ export default function Page() {
               </div>
             </div>
 
+            {/* Custom Links */}
+            <div className="space-y-3">
+              <Label className="font-medium text-sm">Links</Label>
+              <div className="space-y-2">
+                {customLinks.map((url, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-background px-3 py-2.5"
+                  >
+                    <Link2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <input
+                      className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                      placeholder="https://example.com"
+                      value={url}
+                      onChange={(e) =>
+                        handleCustomLinkChange(index, e.target.value)
+                      }
+                    />
+                    {customLinks.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeCustomLink(index)}
+                        className="shrink-0 text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 gap-1 text-xs"
+                onClick={addCustomLink}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Add another link
+              </Button>
+            </div>
+
             {/* Actions */}
             <div className="flex items-center justify-between pt-2">
               <Link
@@ -319,7 +410,8 @@ export default function Page() {
                   </div>
 
                   {/* Bento grid preview */}
-                  {filledSocials.length > 0 && (
+                  {(filledSocials.length > 0 ||
+                    filledCustomLinks.length > 0) && (
                     <div className="mt-4 grid grid-cols-2 gap-2">
                       {filledSocials.map(([platform, username]) => {
                         const social = SOCIALS.find((s) => s.key === platform);
@@ -335,24 +427,28 @@ export default function Page() {
                           />
                         );
                       })}
+                      {filledCustomLinks.map((url) => (
+                        <CustomLinkPreviewCard key={url} url={url} />
+                      ))}
                     </div>
                   )}
 
                   {/* Empty state */}
-                  {filledSocials.length === 0 && (
-                    <div className="mt-4 grid grid-cols-2 gap-2">
-                      {[1, 2, 3, 4].map((i) => (
-                        <div
-                          key={i}
-                          className="flex h-20 items-center justify-center rounded-xl border border-border/40 border-dashed bg-muted/30"
-                        >
-                          <span className="text-[9px] text-muted-foreground/30">
-                            Card
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  {filledSocials.length === 0 &&
+                    filledCustomLinks.length === 0 && (
+                      <div className="mt-4 grid grid-cols-2 gap-2">
+                        {[1, 2, 3, 4].map((i) => (
+                          <div
+                            key={i}
+                            className="flex h-20 items-center justify-center rounded-xl border border-border/40 border-dashed bg-muted/30"
+                          >
+                            <span className="text-[9px] text-muted-foreground/30">
+                              Card
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                   {/* Footer */}
                   <div className="mt-4 text-center">

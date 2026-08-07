@@ -17,6 +17,7 @@ export const CreateLinkSchema = z.object({
   discord: z.string().optional(),
   youtube: z.string().optional(),
   twitch: z.string().optional(),
+  customLinks: z.array(z.string().url()).max(10).optional(),
 });
 
 export const GetByLinkSchema = z.object({

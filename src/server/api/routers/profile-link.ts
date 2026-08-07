@@ -449,16 +449,40 @@ export const profileLinkRouter = createTRPCRouter({
     }),
 });
 
+const SOCIAL_KEYS = [
+  'twitter',
+  'github',
+  'linkedin',
+  'instagram',
+  'telegram',
+  'discord',
+  'youtube',
+  'twitch',
+] as const;
+
 function generateInitialBento(input: z.infer<typeof CreateLinkSchema>) {
   const bento: LinkBento[] = [];
   let position = { sm: { x: 0, y: 0 }, md: { x: 0, y: 0 } };
 
-  for (const [key, value] of Object.entries(input)) {
-    if (key === 'link' || !value) {
+  for (const key of SOCIAL_KEYS) {
+    const value = input[key];
+    if (!value) {
       continue;
     }
 
-    const url = getSocialUrl(key, value);
+    bento.push({
+      id: crypto.randomUUID(),
+      type: 'link',
+      href: getSocialUrl(key, value),
+      clicks: 0,
+      size: { sm: '2x2', md: '2x2' },
+      position,
+    });
+
+    position = getNextPosition(position);
+  }
+
+  for (const url of input.customLinks ?? []) {
     bento.push({
       id: crypto.randomUUID(),
       type: 'link',
@@ -470,6 +494,7 @@ function generateInitialBento(input: z.infer<typeof CreateLinkSchema>) {
 
     position = getNextPosition(position);
   }
+
   return bento;
 }
 
