@@ -59,7 +59,15 @@ function getIp(req: NextRequest): string {
 export function createRateLimitedProcedure(limiter: Ratelimit) {
   return t.procedure.use(async ({ ctx, next }) => {
     const ip = getIp(ctx.req);
-    const { success } = await limiter.limit(ip);
+    // Rate limiting is a protection mechanism, not core functionality — a
+    // Redis outage/misconfiguration should degrade to "unlimited" rather
+    // than taking down every rate-limited endpoint.
+    let success = true;
+    try {
+      ({ success } = await limiter.limit(ip));
+    } catch {
+      success = true;
+    }
     if (!success) {
       throw new TRPCError({
         code: 'TOO_MANY_REQUESTS',

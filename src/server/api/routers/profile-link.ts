@@ -23,20 +23,24 @@ import {
   addProfileLinkBento,
   canModifyProfileLink,
   createProfileLink,
+  decodeCityHeader,
   deleteProfileLink,
   deleteProfileLinkBento,
+  getCardStats,
   getClicksOverTime,
   getDeviceBreakdown,
   getEmailSubscribers,
   getGeoBreakdown,
+  getLocationBreakdown,
   getProfileLinkById,
   getProfileLinkByLink,
   getProfileLinkUniqueViews,
   getProfileLinkViews,
   getProfileLinksOfUser,
-  getTopCards,
   getTopReferrers,
   getTotalClicks,
+  getTrafficSourceBreakdown,
+  getUtmBreakdown,
   getViewsOverTime,
   isProfileLinkAvailable,
   recordLinkClick,
@@ -58,6 +62,7 @@ import {
   GetByLinkSchema,
   GetLinkViewsSchema,
   LinkAvailableSchema,
+  TrackClickSchema,
   UpdateLinkBentoSchema,
   UpdateLinkSchema,
 } from '../schemas';
@@ -132,6 +137,9 @@ export const profileLinkRouter = createTRPCRouter({
       }
 
       const country = ctx.req.headers.get('x-vercel-ip-country') ?? undefined;
+      const region =
+        ctx.req.headers.get('x-vercel-ip-country-region') ?? undefined;
+      const city = decodeCityHeader(ctx.req.headers.get('x-vercel-ip-city'));
 
       after(() =>
         recordLinkView(profileLink.id, {
@@ -139,6 +147,16 @@ export const profileLinkRouter = createTRPCRouter({
           userAgent: ctx.req.headers.get('user-agent') ?? 'Unknown',
           referrer: ctx.req.headers.get('referer') ?? undefined,
           country,
+          region,
+          city,
+          utmSource: input.utmSource,
+          utmMedium: input.utmMedium,
+          utmCampaign: input.utmCampaign,
+          utmTerm: input.utmTerm,
+          utmContent: input.utmContent,
+          fbclid: input.fbclid,
+          gclid: input.gclid,
+          ttclid: input.ttclid,
         })
       );
 
@@ -155,13 +173,7 @@ export const profileLinkRouter = createTRPCRouter({
     }),
 
   trackClick: rateLimitedProcedure
-    .input(
-      z.object({
-        linkId: z.string(),
-        bentoId: z.string(),
-        href: z.string(),
-      })
-    )
+    .input(TrackClickSchema)
     .mutation(async ({ input, ctx }) => {
       let ip = ctx.req.headers.get('x-real-ip');
       const forwardedFor = ctx.req.headers.get('x-forwarded-for');
@@ -169,12 +181,28 @@ export const profileLinkRouter = createTRPCRouter({
         ip = forwardedFor.split(',').at(0) ?? 'Unknown';
       }
 
+      const country = ctx.req.headers.get('x-vercel-ip-country') ?? undefined;
+      const region =
+        ctx.req.headers.get('x-vercel-ip-country-region') ?? undefined;
+      const city = decodeCityHeader(ctx.req.headers.get('x-vercel-ip-city'));
+
       await recordLinkClick(input.linkId, {
         bentoId: input.bentoId,
         href: input.href,
         ip: ip ?? 'Unknown',
         userAgent: ctx.req.headers.get('user-agent') ?? 'Unknown',
         referrer: ctx.req.headers.get('referer') ?? undefined,
+        country,
+        region,
+        city,
+        utmSource: input.utmSource,
+        utmMedium: input.utmMedium,
+        utmCampaign: input.utmCampaign,
+        utmTerm: input.utmTerm,
+        utmContent: input.utmContent,
+        fbclid: input.fbclid,
+        gclid: input.gclid,
+        ttclid: input.ttclid,
       });
     }),
 
@@ -218,20 +246,26 @@ export const profileLinkRouter = createTRPCRouter({
         clicks,
         viewsOverTime,
         clicksOverTime,
-        topCards,
+        cardStats,
         topReferrers,
         deviceBreakdown,
         geoBreakdown,
+        utmBreakdown,
+        trafficSourceBreakdown,
+        locationBreakdown,
       ] = await Promise.all([
         getProfileLinkViews(input.linkId),
         getProfileLinkUniqueViews(input.linkId),
         getTotalClicks(input.linkId),
         getViewsOverTime(input.linkId, input.days),
         getClicksOverTime(input.linkId, input.days),
-        getTopCards(input.linkId, input.days),
+        getCardStats(input.linkId, input.days),
         getTopReferrers(input.linkId, input.days),
         getDeviceBreakdown(input.linkId, input.days),
         getGeoBreakdown(input.linkId, input.days),
+        getUtmBreakdown(input.linkId, input.days),
+        getTrafficSourceBreakdown(input.linkId, input.days),
+        getLocationBreakdown(input.linkId, input.days),
       ]);
 
       return {
@@ -240,10 +274,13 @@ export const profileLinkRouter = createTRPCRouter({
         clicks,
         viewsOverTime,
         clicksOverTime,
-        topCards,
+        cardStats,
         topReferrers,
         deviceBreakdown,
         geoBreakdown,
+        utmBreakdown,
+        trafficSourceBreakdown,
+        locationBreakdown,
       };
     }),
 

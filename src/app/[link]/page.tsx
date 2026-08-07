@@ -5,6 +5,7 @@ import {
 } from '@/app/shared-metadata';
 import OnboardingTour from '@/components/onboarding-tour';
 import { Skeleton } from '@/components/ui/skeleton';
+import { extractAttributionParams } from '@/lib/attribution';
 import { api } from '@/trpc/server';
 import { ArrowRight } from 'lucide-react';
 import type { Metadata } from 'next';
@@ -23,16 +24,75 @@ type Props = {
   params: Promise<{
     link: string;
   }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-const getProfileLink = cache((link: string) => {
-  return api.profileLink.getByLink({ link });
-});
+// getProfileLink is memoized by React's cache() per request, keyed on its
+// arguments. It's called from both generateMetadata and Page — passing a
+// freshly-built object each time (instead of primitives) would defeat the
+// memoization, since two object literals with equal contents aren't
+// Object.is-equal, causing getByLink (and its view-recording side effect) to
+// fire twice per request.
+const getProfileLink = cache(
+  (
+    link: string,
+    utmSource?: string,
+    utmMedium?: string,
+    utmCampaign?: string,
+    utmTerm?: string,
+    utmContent?: string,
+    fbclid?: string,
+    gclid?: string,
+    ttclid?: string
+  ) => {
+    return api.profileLink.getByLink({
+      link,
+      utmSource,
+      utmMedium,
+      utmCampaign,
+      utmTerm,
+      utmContent,
+      fbclid,
+      gclid,
+      ttclid,
+    });
+  }
+);
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+function toSearchParams(
+  raw: Record<string, string | string[] | undefined>
+): URLSearchParams {
+  const sp = new URLSearchParams();
+  for (const [key, value] of Object.entries(raw)) {
+    if (typeof value === 'string') {
+      sp.set(key, value);
+    } else if (Array.isArray(value) && value[0] !== undefined) {
+      sp.set(key, value[0]);
+    }
+  }
+  return sp;
+}
+
+export async function generateMetadata({
+  params,
+  searchParams,
+}: Props): Promise<Metadata> {
   const { link } = await params;
+  const attribution = extractAttributionParams(
+    toSearchParams(await searchParams)
+  );
 
-  const profileLink = await getProfileLink(link);
+  const profileLink = await getProfileLink(
+    link,
+    attribution.utmSource,
+    attribution.utmMedium,
+    attribution.utmCampaign,
+    attribution.utmTerm,
+    attribution.utmContent,
+    attribution.fbclid,
+    attribution.gclid,
+    attribution.ttclid
+  );
 
   const title = profileLink?.name ?? defaultMetadata.title;
   const description = (
@@ -59,9 +119,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function Page({ params }: Props) {
+export default async function Page({ params, searchParams }: Props) {
   const { link } = await params;
-  const profileLink = await getProfileLink(link);
+  const attribution = extractAttributionParams(
+    toSearchParams(await searchParams)
+  );
+  const profileLink = await getProfileLink(
+    link,
+    attribution.utmSource,
+    attribution.utmMedium,
+    attribution.utmCampaign,
+    attribution.utmTerm,
+    attribution.utmContent,
+    attribution.fbclid,
+    attribution.gclid,
+    attribution.ttclid
+  );
 
   if (!profileLink) {
     notFound();

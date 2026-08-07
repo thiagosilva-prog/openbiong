@@ -1,6 +1,21 @@
 import { BentoSchema, ValidLinkSchema } from '@/types';
 import * as z from 'zod';
 
+// Deliberately unvalidated (no .max()): these come from public,
+// unauthenticated, high-traffic endpoints fed by third-party ad networks.
+// Rejecting an oversized value would 400 the whole request instead of just
+// skipping tracking. Values are truncated defensively before being stored.
+const attributionFields = {
+  utmSource: z.string().optional(),
+  utmMedium: z.string().optional(),
+  utmCampaign: z.string().optional(),
+  utmTerm: z.string().optional(),
+  utmContent: z.string().optional(),
+  fbclid: z.string().optional(),
+  gclid: z.string().optional(),
+  ttclid: z.string().optional(),
+};
+
 export const LinkAvailableSchema = z.object({
   link: z.string().toLowerCase(),
 });
@@ -22,6 +37,14 @@ export const CreateLinkSchema = z.object({
 
 export const GetByLinkSchema = z.object({
   link: z.string(),
+  ...attributionFields,
+});
+
+export const TrackClickSchema = z.object({
+  linkId: z.string(),
+  bentoId: z.string(),
+  href: z.string(),
+  ...attributionFields,
 });
 
 export const GetLinkViewsSchema = z.object({

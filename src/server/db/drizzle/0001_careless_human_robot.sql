@@ -1,0 +1,21 @@
+ALTER TABLE "link_view" ADD COLUMN "region" varchar(10);--> statement-breakpoint
+ALTER TABLE "link_view" ADD COLUMN "city" text;--> statement-breakpoint
+ALTER TABLE "link_view" ADD COLUMN "utm_source" text;--> statement-breakpoint
+ALTER TABLE "link_view" ADD COLUMN "utm_medium" text;--> statement-breakpoint
+ALTER TABLE "link_view" ADD COLUMN "utm_campaign" text;--> statement-breakpoint
+ALTER TABLE "link_view" ADD COLUMN "utm_term" text;--> statement-breakpoint
+ALTER TABLE "link_view" ADD COLUMN "utm_content" text;--> statement-breakpoint
+ALTER TABLE "link_view" ADD COLUMN "fbclid" text;--> statement-breakpoint
+ALTER TABLE "link_view" ADD COLUMN "gclid" text;--> statement-breakpoint
+ALTER TABLE "link_view" ADD COLUMN "ttclid" text;--> statement-breakpoint
+ALTER TABLE "link_click" ADD COLUMN "country" varchar(2);--> statement-breakpoint
+ALTER TABLE "link_click" ADD COLUMN "region" varchar(10);--> statement-breakpoint
+ALTER TABLE "link_click" ADD COLUMN "city" text;--> statement-breakpoint
+ALTER TABLE "link_click" ADD COLUMN "utm_source" text;--> statement-breakpoint
+ALTER TABLE "link_click" ADD COLUMN "utm_medium" text;--> statement-breakpoint
+ALTER TABLE "link_click" ADD COLUMN "utm_campaign" text;--> statement-breakpoint
+ALTER TABLE "link_click" ADD COLUMN "utm_term" text;--> statement-breakpoint
+ALTER TABLE "link_click" ADD COLUMN "utm_content" text;--> statement-breakpoint
+ALTER TABLE "link_click" ADD COLUMN "fbclid" text;--> statement-breakpoint
+ALTER TABLE "link_click" ADD COLUMN "gclid" text;--> statement-breakpoint
+ALTER TABLE "link_click" ADD COLUMN "ttclid" text;

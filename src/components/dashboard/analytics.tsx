@@ -22,8 +22,11 @@ import {
   Eye,
   Globe,
   Mail,
+  MapPin,
+  Megaphone,
   Monitor,
   MousePointerClick,
+  Target,
   Users,
 } from 'lucide-react';
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
@@ -45,6 +48,170 @@ const clicksConfig = {
 function formatDate(dateStr: string) {
   const d = new Date(dateStr);
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+type UtmBreakdownRow = {
+  source: string;
+  medium: string;
+  campaign: string;
+  count: number;
+};
+
+function CampaignsCard({ data }: { data: UtmBreakdownRow[] | undefined }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="font-cal">Campaigns</CardTitle>
+        <CardDescription>Traffic by UTM campaign</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {data?.length ? (
+          <div className="space-y-3">
+            {data.map((u) => {
+              const maxCount = data[0]?.count ?? 1;
+              const pct = Math.round((u.count / maxCount) * 100);
+              const key = `${u.source}:${u.medium}:${u.campaign}`;
+              return (
+                <div key={key} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex min-w-0 items-center gap-1.5">
+                      <Target className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <span className="min-w-0">
+                        <span className="block truncate">{u.campaign}</span>
+                        <span className="block truncate text-muted-foreground text-xs">
+                          {u.source} / {u.medium}
+                        </span>
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-muted-foreground">
+                      {u.count}
+                    </span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-chart-1 transition-all"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="py-6 text-center text-muted-foreground text-sm">
+            No campaign data yet
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+type TrafficSourceRow = { source: string; count: number };
+
+function AdTrafficSourceCard({
+  data,
+}: {
+  data: TrafficSourceRow[] | undefined;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="font-cal">Ad Traffic Source</CardTitle>
+        <CardDescription>Visitors from ad clicks</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {data?.length ? (
+          <div className="space-y-3">
+            {data.map((s) => {
+              const maxCount = data[0]?.count ?? 1;
+              const pct = Math.round((s.count / maxCount) * 100);
+              return (
+                <div key={s.source} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-1.5">
+                      <Megaphone className="h-3.5 w-3.5 text-muted-foreground" />
+                      {s.source}
+                    </span>
+                    <span className="shrink-0 text-muted-foreground">
+                      {s.count}
+                    </span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-chart-2 transition-all"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="py-6 text-center text-muted-foreground text-sm">
+            No ad traffic data yet
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+type LocationBreakdownRow = {
+  country: string;
+  region: string;
+  city: string;
+  count: number;
+};
+
+function TopLocationsCard({
+  data,
+}: { data: LocationBreakdownRow[] | undefined }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="font-cal">Top Locations</CardTitle>
+        <CardDescription>City-level visitor locations</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {data?.length ? (
+          <div className="space-y-3">
+            {data.map((l) => {
+              const maxCount = data[0]?.count ?? 1;
+              const pct = Math.round((l.count / maxCount) * 100);
+              const key = `${l.country}:${l.region}:${l.city}`;
+              const label = [l.city, l.region, l.country]
+                .filter((part) => part && part !== 'Unknown')
+                .join(', ');
+              return (
+                <div key={key} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-1.5 truncate">
+                      <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <span className="truncate">{label || 'Unknown'}</span>
+                    </span>
+                    <span className="shrink-0 text-muted-foreground">
+                      {l.count}
+                    </span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-chart-4 transition-all"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="py-6 text-center text-muted-foreground text-sm">
+            No location data yet
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function Analytics({ linkId }: { linkId: string }) {
@@ -219,18 +386,21 @@ export default function Analytics({ linkId }: { linkId: string }) {
         <Card>
           <CardHeader>
             <CardTitle className="font-cal">Top Links</CardTitle>
-            <CardDescription>Most clicked cards</CardDescription>
+            <CardDescription>
+              Most clicked cards, with click-through rate (% of visitors who
+              clicked)
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            {data.topCards.length === 0 ? (
+            {data.cardStats.length === 0 ? (
               <p className="py-6 text-center text-muted-foreground text-sm">
                 No click data yet
               </p>
             ) : (
-              <div className="space-y-3">
-                {data.topCards.map((c) => {
-                  const maxCount = data.topCards[0]?.count ?? 1;
-                  const pct = Math.round((c.count / maxCount) * 100);
+              <div className="max-h-[420px] space-y-3 overflow-y-auto pr-1">
+                {data.cardStats.map((c) => {
+                  const maxCount = data.cardStats[0]?.clicks ?? 1;
+                  const pct = Math.round((c.clicks / maxCount) * 100);
                   let label: string;
                   try {
                     const url = new URL(c.href);
@@ -243,7 +413,7 @@ export default function Analytics({ linkId }: { linkId: string }) {
                       <div className="flex items-center justify-between text-sm">
                         <span className="truncate">{label}</span>
                         <span className="shrink-0 text-muted-foreground">
-                          {c.count}
+                          {c.clicks} · {Math.round(c.ctr * 100)}%
                         </span>
                       </div>
                       <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
@@ -428,6 +598,13 @@ export default function Analytics({ linkId }: { linkId: string }) {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      {/* Campaigns, Ad Traffic Source & Top Locations */}
+      <div className="grid gap-6 md:grid-cols-3">
+        <CampaignsCard data={data.utmBreakdown} />
+        <AdTrafficSourceCard data={data.trafficSourceBreakdown} />
+        <TopLocationsCard data={data.locationBreakdown} />
       </div>
 
       {/* Email Subscribers */}

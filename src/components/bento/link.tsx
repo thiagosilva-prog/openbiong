@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { extractAttributionParams } from '@/lib/attribution';
 import type { getMetadata } from '@/lib/metadata';
 import { cn } from '@/lib/utils';
 import { api } from '@/trpc/react';
@@ -17,7 +18,7 @@ import type { LinkBentoSchema } from '@/types';
 import { Pencil } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import type React from 'react';
 import { useState } from 'react';
 import { BiLogoTelegram } from 'react-icons/bi';
@@ -300,6 +301,7 @@ function CardWrapper({
   listMode?: boolean;
 }) {
   const { link: linkSlug } = useParams<{ link: string }>();
+  const searchParams = useSearchParams();
   const { data: profileLink } = api.profileLink.getByLink.useQuery(
     { link: linkSlug },
     { enabled: !editable }
@@ -312,6 +314,7 @@ function CardWrapper({
         linkId: profileLink.id,
         bentoId: bento.id,
         href: bento.href,
+        ...extractAttributionParams(searchParams),
       });
     }
   };
