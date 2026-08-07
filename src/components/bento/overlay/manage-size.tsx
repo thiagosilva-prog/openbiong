@@ -1,0 +1,143 @@
+'use client';
+
+import { usePreview } from '@/app/[link]/_components/preview-context';
+import Size2x2 from '@/components/icons/size-2x2';
+import Size2x4 from '@/components/icons/size-2x4';
+import Size4x1 from '@/components/icons/size-4x1';
+import Size4x2 from '@/components/icons/size-4x2';
+import Size4x4 from '@/components/icons/size-4x4';
+import { cn } from '@/lib/utils';
+import { api } from '@/trpc/react';
+import { useParams } from 'next/navigation';
+import type { ComponentType } from 'react';
+import { createPortal } from 'react-dom';
+import type * as z from 'zod';
+
+const ALL_SIZE_OPTIONS: { key: string; icon: ComponentType }[] = [
+  { key: '2x2', icon: Size2x2 },
+  { key: '4x1', icon: Size4x1 },
+  { key: '4x2', icon: Size4x2 },
+  { key: '2x4', icon: Size2x4 },
+  { key: '4x4', icon: Size4x4 },
+];
+
+export default function ManageSize({
+  bento,
+  close,
+  allowedSizes,
+  onHover,
+  onLeave,
+}: {
+  bento: z.infer<typeof import('@/types').BentoSchema>;
+  close: () => void;
+  allowedSizes?: readonly string[];
+  onHover?: () => void;
+  onLeave?: () => void;
+}) {
+  const { link } = useParams<{ link: string }>();
+  const { viewport } = usePreview();
+  const isMobile = viewport === 'mobile' || window.innerWidth < 600;
+  const size = isMobile ? bento.size.sm : bento.size.md;
+
+  const sizeOptions = allowedSizes
+    ? ALL_SIZE_OPTIONS.filter((o) => allowedSizes.includes(o.key))
+    : ALL_SIZE_OPTIONS;
+
+  const queryClient = api.useContext();
+
+  const { mutateAsync: updateBento } = api.profileLink.updateBento.useMutation({
+    onMutate: async (input) => {
+      // Cancel in-flight refetches so they don't overwrite our optimistic update
+      await queryClient.profileLink.getByLink.cancel({ link });
+
+      const previous = queryClient.profileLink.getByLink.getData({ link });
+
+      queryClient.profileLink.getByLink.setData({ link }, (old) => {
+        if (!old) {
+          return old;
+        }
+        return {
+          ...old,
+          bento: old.bento.map((b) => {
+            if (b.id === input.bento.id) {
+              return { ...b, size: input.bento.size ?? b.size };
+            }
+            return b;
+          }),
+        };
+      });
+
+      return { previous };
+    },
+    onError: (_err, _input, context) => {
+      // Rollback on error
+      if (context?.previous) {
+        queryClient.profileLink.getByLink.setData({ link }, context.previous);
+      }
+    },
+  });
+
+  const handleSizeClick = (key: string) => {
+    const sizeKey = key as '2x2' | '4x1' | '4x2' | '2x4' | '4x4';
+    const breakpoint = isMobile ? 'sm' : 'md';
+    updateBento({
+      link,
+      bento: {
+        ...bento,
+        size: {
+          ...bento.size,
+          [breakpoint]: sizeKey,
+        },
+      },
+    });
+  };
+
+  const sizeButtons = (
+    <div className="flex items-center gap-0.5 rounded-lg border border-border/50 bg-background/90 p-0.5 shadow-md backdrop-blur-sm">
+      {sizeOptions.map((o) => (
+        <button
+          type="button"
+          key={o.key}
+          className={cn(
+            'inline-flex items-center justify-center rounded-md p-2 text-muted-foreground transition-all duration-150 hover:bg-accent hover:text-accent-foreground active:scale-95',
+            size === o.key && 'bg-accent text-accent-foreground shadow-sm'
+          )}
+          onClick={() => handleSizeClick(o.key)}
+        >
+          <o.icon />
+        </button>
+      ))}
+    </div>
+  );
+
+  // Mobile: fixed bottom sheet with backdrop, portaled to body
+  if (isMobile) {
+    return createPortal(
+      <div className="fixed inset-0 z-100">
+        {/* biome-ignore lint/a11y/useKeyWithClickEvents: backdrop dismiss */}
+        {/* biome-ignore lint/nursery/noStaticElementInteractions: backdrop dismiss */}
+        <div
+          role="presentation"
+          className="absolute inset-0 bg-foreground/20"
+          onClick={close}
+        />
+        <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-3 px-4 pt-4 pb-8">
+          {sizeButtons}
+        </div>
+      </div>,
+      document.body
+    );
+  }
+
+  // Desktop: absolute positioned below card
+  return (
+    <div
+      role="toolbar"
+      className="-translate-x-1/2 absolute bottom-2 left-1/2 z-100 translate-y-full"
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
+    >
+      {sizeButtons}
+    </div>
+  );
+}

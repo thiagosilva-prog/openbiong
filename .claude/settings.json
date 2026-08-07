@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit:*)",
+      "Bash(bunx husky:*)",
+      "Bash(git rm:*)",
+      "Bash(bun run dev)",
+      "Bash(bun run build)",
+      "Bash(bun run lint*)",
+      "Bash(bun run format)",
+      "Bash(bun run typecheck)",
+      "Bash(bun run db:*)",
+      "Bash(bun install*)",
+      "Bash(bun add*)",
+      "Bash(bun remove*)",
+      "Bash(bunx*)",
+      "Bash(git -C /Users/vanxh/Developer/codes/openbio add src/app/api/upload/bento-image/route.ts src/app/api/upload/route.ts bun.lock)",
+      "Bash(git -C:*)",
+      "Bash(git add:*)"
+    ],
+    "additionalDirectories": ["/Users/vanxh/Developer/codes/openbio/.claude"]
+  }
+}
