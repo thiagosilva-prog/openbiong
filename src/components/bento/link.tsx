@@ -576,6 +576,64 @@ function WideLayout({
   );
 }
 
+function LinkLayout({
+  bento,
+  editable,
+  listMode,
+  metadata,
+  title,
+  description,
+  onEdit,
+}: {
+  bento: BentoData;
+  editable?: boolean;
+  listMode?: boolean;
+  metadata?: Metadata;
+  title?: string | null;
+  description?: string | null;
+  onEdit?: () => void;
+}) {
+  const smSize = bento.size.sm ?? '2x2';
+  const mdSize = bento.size.md ?? '2x2';
+
+  if (listMode || smSize === '4x1' || mdSize === '4x1') {
+    return (
+      <BannerLayout
+        bento={bento}
+        editable={editable}
+        metadata={metadata}
+        title={title}
+        onEdit={onEdit}
+        listMode={listMode}
+      />
+    );
+  }
+
+  if (mdSize === '4x2') {
+    return (
+      <WideLayout
+        bento={bento}
+        editable={editable}
+        metadata={metadata}
+        title={title}
+        description={description}
+        onEdit={onEdit}
+      />
+    );
+  }
+
+  return (
+    <CompactLayout
+      bento={bento}
+      editable={editable}
+      metadata={metadata}
+      title={title}
+      description={description}
+      onEdit={onEdit}
+    />
+  );
+}
+
 // --- Main Component ---
 
 export default function LinkCard({
@@ -628,43 +686,19 @@ export default function LinkCard({
 
   const title = bento.title || getTitle(bento.href, metadata ?? undefined);
   const description = getDescription(bento.href, metadata ?? undefined);
-  const smSize = bento.size.sm ?? '2x2';
-  const mdSize = bento.size.md ?? '2x2';
   const onEdit = editable ? () => setEditOpen(true) : undefined;
-
-  const layout =
-    listMode || smSize === '4x1' || mdSize === '4x1' ? (
-      <BannerLayout
-        bento={bento}
-        editable={editable}
-        metadata={metadata ?? undefined}
-        title={title}
-        onEdit={onEdit}
-        listMode={listMode}
-      />
-    ) : mdSize === '4x2' ? (
-      <WideLayout
-        bento={bento}
-        editable={editable}
-        metadata={metadata ?? undefined}
-        title={title}
-        description={description}
-        onEdit={onEdit}
-      />
-    ) : (
-      <CompactLayout
-        bento={bento}
-        editable={editable}
-        metadata={metadata ?? undefined}
-        title={title}
-        description={description}
-        onEdit={onEdit}
-      />
-    );
 
   return (
     <>
-      {layout}
+      <LinkLayout
+        bento={bento}
+        editable={editable}
+        listMode={listMode}
+        metadata={metadata ?? undefined}
+        title={title}
+        description={description}
+        onEdit={onEdit}
+      />
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-lg">

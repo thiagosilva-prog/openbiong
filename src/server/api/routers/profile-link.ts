@@ -519,11 +519,12 @@ function generateInitialBento(input: z.infer<typeof CreateLinkSchema>) {
     position = getNextPosition(position);
   }
 
-  for (const url of input.customLinks ?? []) {
+  for (const customLink of input.customLinks ?? []) {
     bento.push({
       id: crypto.randomUUID(),
       type: 'link',
-      href: url,
+      href: customLink.url,
+      title: customLink.title,
       clicks: 0,
       size: { sm: '2x2', md: '2x2' },
       position,

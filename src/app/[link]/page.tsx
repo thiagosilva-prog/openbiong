@@ -119,9 +119,11 @@ export async function generateMetadata({
 
 export default async function Page({ params, searchParams }: Props) {
   const { link } = await params;
+  const resolvedSearchParams = await searchParams;
   const attribution = extractAttributionParams(
-    toSearchParams(await searchParams)
+    toSearchParams(resolvedSearchParams)
   );
+  const editRequested = resolvedSearchParams.edit === '1';
   const profileLink = await getProfileLink(
     link,
     attribution.utmSource,
@@ -168,7 +170,7 @@ export default async function Page({ params, searchParams }: Props) {
         darkMode={profileLink.darkMode}
         accentColor={profileLink.accentColor}
       >
-        <PreviewProvider>
+        <PreviewProvider initialPreview={!editRequested}>
           <Suspense>
             <BentoHistoryProvider>
               <ViewportContainer>

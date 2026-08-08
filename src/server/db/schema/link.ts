@@ -33,6 +33,7 @@ export const link = pgTable('link', {
   theme: text('theme').default('default').notNull(),
   accentColor: text('accent_color'),
   darkMode: boolean('dark_mode').default(false).notNull(),
+  contentAlign: text('content_align').default('left').notNull(),
 
   customFooter: text('custom_footer'),
 

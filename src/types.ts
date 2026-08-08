@@ -234,6 +234,7 @@ export type LinkBento = {
   id: string;
   type: 'link';
   href: string;
+  title?: string;
   clicks: number;
 
   size: z.infer<typeof SizeSchema>;

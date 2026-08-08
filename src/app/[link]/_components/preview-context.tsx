@@ -17,8 +17,14 @@ const PreviewContext = createContext<{
   setViewport: () => undefined,
 });
 
-export function PreviewProvider({ children }: { children: React.ReactNode }) {
-  const [preview, setPreview] = useState(false);
+export function PreviewProvider({
+  children,
+  initialPreview = true,
+}: {
+  children: React.ReactNode;
+  initialPreview?: boolean;
+}) {
+  const [preview, setPreview] = useState(initialPreview);
   const [viewport, setViewport] = useState<Viewport>('desktop');
   return (
     <PreviewContext.Provider

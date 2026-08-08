@@ -1,0 +1,1 @@
+ALTER TABLE "link" ADD COLUMN "content_align" text DEFAULT 'left' NOT NULL;

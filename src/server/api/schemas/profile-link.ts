@@ -32,7 +32,15 @@ export const CreateLinkSchema = z.object({
   discord: z.string().optional(),
   youtube: z.string().optional(),
   twitch: z.string().optional(),
-  customLinks: z.array(z.string().url()).max(10).optional(),
+  customLinks: z
+    .array(
+      z.object({
+        url: z.string().url(),
+        title: z.string().optional(),
+      })
+    )
+    .max(10)
+    .optional(),
 });
 
 export const GetByLinkSchema = z.object({
@@ -58,6 +66,7 @@ export const UpdateLinkSchema = z.object({
   theme: z.string().optional(),
   accentColor: z.string().nullable().optional(),
   darkMode: z.boolean().optional(),
+  contentAlign: z.enum(['left', 'center', 'right']).optional(),
   customDomain: z.string().nullable().optional(),
   customFooter: z.string().nullable().optional(),
   isPublic: z.boolean().optional(),

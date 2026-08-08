@@ -3,7 +3,14 @@
 import LinkQRModal from '@/components/modals/link-qr-modal';
 import { Button } from '@/components/ui/button';
 import { type RouterOutputs, api } from '@/trpc/react';
-import { BarChart3, ExternalLink, Eye, QrCode, Trash2 } from 'lucide-react';
+import {
+  BarChart3,
+  ExternalLink,
+  Eye,
+  Pencil,
+  QrCode,
+  Trash2,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -42,8 +49,23 @@ export function DashboardLinkCard({ link }: { link: ProfileLink }) {
         </div>
       </div>
       <div className="flex justify-around border-border/50 border-t px-2 py-1">
+        <Link href={`/${link.link}?edit=1`}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            title="Editar"
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+        </Link>
         <Link href={`/${link.link}`} target="_blank">
-          <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            title="Abrir página pública"
+          >
             <ExternalLink className="h-4 w-4" />
           </Button>
         </Link>

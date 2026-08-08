@@ -12,9 +12,39 @@ import { Switch } from '@/components/ui/switch';
 import { THEME_PRESETS } from '@/lib/themes';
 import { cn } from '@/lib/utils';
 import { api } from '@/trpc/react';
-import { Check, Moon, Paintbrush, Palette, Type } from 'lucide-react';
+import {
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
+  Check,
+  Moon,
+  Paintbrush,
+  Palette,
+  Type,
+} from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { type ReactNode, useState } from 'react';
+
+type ContentAlign = 'left' | 'center' | 'right';
+
+const ALIGN_OPTIONS: { value: ContentAlign; label: string; icon: ReactNode }[] =
+  [
+    {
+      value: 'left',
+      label: 'Esquerda',
+      icon: <AlignLeft className="h-4 w-4" />,
+    },
+    {
+      value: 'center',
+      label: 'Centralizado',
+      icon: <AlignCenter className="h-4 w-4" />,
+    },
+    {
+      value: 'right',
+      label: 'Direita',
+      icon: <AlignRight className="h-4 w-4" />,
+    },
+  ];
 
 function SectionHeader({ icon, title }: { icon: ReactNode; title: string }) {
   return (
@@ -45,6 +75,9 @@ export default function ThemeSettingsModal({
   const [customFooter, setCustomFooter] = useState(
     profileLink?.customFooter ?? ''
   );
+  const [contentAlign, setContentAlign] = useState<ContentAlign>(
+    (profileLink?.contentAlign as ContentAlign | undefined) ?? 'left'
+  );
 
   const { mutateAsync: updateLink, isPending } =
     api.profileLink.update.useMutation({
@@ -65,6 +98,7 @@ export default function ThemeSettingsModal({
       darkMode,
       accentColor: accentColor || null,
       customFooter: customFooter || null,
+      contentAlign,
     });
   };
 
@@ -142,6 +176,35 @@ export default function ThemeSettingsModal({
                   title="Modo Escuro"
                 />
                 <Switch checked={darkMode} onCheckedChange={setDarkMode} />
+              </div>
+            </div>
+
+            {/* Content Alignment */}
+            <div className="space-y-3">
+              <SectionHeader
+                icon={<AlignCenter className="h-4 w-4" />}
+                title="Alinhamento da Página"
+              />
+              <div className="grid grid-cols-3 gap-2">
+                {ALIGN_OPTIONS.map((option) => {
+                  const isActive = contentAlign === option.value;
+                  return (
+                    <button
+                      type="button"
+                      key={option.value}
+                      className={cn(
+                        'flex flex-col items-center gap-1.5 rounded-xl border-2 px-3 py-2.5 text-xs transition-all',
+                        isActive
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border hover:border-border/80 hover:bg-muted/30'
+                      )}
+                      onClick={() => setContentAlign(option.value)}
+                    >
+                      {option.icon}
+                      {option.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

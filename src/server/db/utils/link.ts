@@ -152,6 +152,7 @@ export const updateProfileLink = async (data: {
   theme?: string;
   accentColor?: string | null;
   darkMode?: boolean;
+  contentAlign?: 'left' | 'center' | 'right';
   customDomain?: string | null;
   customFooter?: string | null;
   isPublic?: boolean;

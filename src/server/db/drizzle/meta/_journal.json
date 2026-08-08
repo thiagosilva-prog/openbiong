@@ -15,6 +15,13 @@
       "when": 1786137470806,
       "tag": "0001_careless_human_robot",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786154491142,
+      "tag": "0002_left_iceman",
+      "breakpoints": true
     }
   ]
 }

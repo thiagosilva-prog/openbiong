@@ -137,7 +137,13 @@ function WhatsAppPreviewCard() {
   );
 }
 
-function CustomLinkPreviewCard({ url }: { url: string }) {
+function CustomLinkPreviewCard({
+  url,
+  title,
+}: {
+  url: string;
+  title?: string;
+}) {
   let hostname = url;
   try {
     hostname = new URL(url).hostname.replace('www.', '');
@@ -156,7 +162,7 @@ function CustomLinkPreviewCard({ url }: { url: string }) {
         </span>
       </div>
       <div className="mt-2">
-        <p className="truncate font-medium text-[10px]">{hostname}</p>
+        <p className="truncate font-medium text-[10px]">{title || hostname}</p>
       </div>
     </div>
   );
@@ -208,7 +214,9 @@ export default function Page() {
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
   const [socials, setSocials] = useState<Record<string, string>>({});
-  const [customLinks, setCustomLinks] = useState<string[]>(['']);
+  const [customLinks, setCustomLinks] = useState<
+    { url: string; title: string }[]
+  >([{ url: '', title: '' }]);
   const [whatsapp, setWhatsapp] = useState('');
   const [whatsappMessage, setWhatsappMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -219,23 +227,37 @@ export default function Page() {
     setSocials((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleCustomLinkChange = (index: number, value: string) => {
-    setCustomLinks((prev) => prev.map((v, i) => (i === index ? value : v)));
+  const handleCustomLinkChange = (
+    index: number,
+    field: 'url' | 'title',
+    value: string
+  ) => {
+    setCustomLinks((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
+    );
   };
 
-  const addCustomLink = () => setCustomLinks((prev) => [...prev, '']);
+  const addCustomLink = () =>
+    setCustomLinks((prev) => [...prev, { url: '', title: '' }]);
 
   const removeCustomLink = (index: number) =>
     setCustomLinks((prev) => prev.filter((_, i) => i !== index));
 
   const filledSocials = Object.entries(socials).filter(([, v]) => v);
-  const filledCustomLinks = customLinks.map(normalizeUrl).filter(Boolean);
+  const filledCustomLinks = customLinks
+    .map((item) => ({ url: normalizeUrl(item.url), title: item.title.trim() }))
+    .filter((item) => item.url);
   const whatsappUrl = buildWhatsAppUrl(whatsapp, whatsappMessage);
   const allCustomLinks = whatsappUrl
-    ? [...filledCustomLinks, whatsappUrl]
+    ? [...filledCustomLinks, { url: whatsappUrl, title: '' }]
     : filledCustomLinks;
   const customLinksPayload =
-    allCustomLinks.length > 0 ? allCustomLinks : undefined;
+    allCustomLinks.length > 0
+      ? allCustomLinks.map((item) => ({
+          url: item.url,
+          title: item.title || undefined,
+        }))
+      : undefined;
 
   const handlePublish = async () => {
     if (!link || !name) {
@@ -257,7 +279,7 @@ export default function Page() {
         twitch: socials.twitch || undefined,
         customLinks: customLinksPayload,
       });
-      router.push(`/${link}`);
+      router.push(`/${link}?edit=1`);
     } catch {
       setLoading(false);
     }
@@ -388,29 +410,41 @@ export default function Page() {
             <div className="space-y-3">
               <Label className="font-medium text-sm">Links</Label>
               <div className="space-y-2">
-                {customLinks.map((url, index) => (
+                {customLinks.map((item, index) => (
                   <div
                     key={index}
-                    className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-background px-3 py-2.5"
+                    className="space-y-1.5 rounded-xl border border-border/50 bg-background px-3 py-2.5"
                   >
-                    <Link2 className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    <input
-                      className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                      placeholder="https://exemplo.com"
-                      value={url}
-                      onChange={(e) =>
-                        handleCustomLinkChange(index, e.target.value)
-                      }
-                    />
-                    {customLinks.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeCustomLink(index)}
-                        className="shrink-0 text-muted-foreground hover:text-foreground"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    )}
+                    <div className="flex items-center gap-2.5">
+                      <Link2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <input
+                        className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                        placeholder="https://exemplo.com"
+                        value={item.url}
+                        onChange={(e) =>
+                          handleCustomLinkChange(index, 'url', e.target.value)
+                        }
+                      />
+                      {customLinks.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeCustomLink(index)}
+                          className="shrink-0 text-muted-foreground hover:text-foreground"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2.5 pl-[26px]">
+                      <input
+                        className="flex-1 bg-transparent text-muted-foreground text-xs outline-none placeholder:text-muted-foreground/70"
+                        placeholder="Título (opcional)"
+                        value={item.title}
+                        onChange={(e) =>
+                          handleCustomLinkChange(index, 'title', e.target.value)
+                        }
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -502,8 +536,12 @@ export default function Page() {
                         );
                       })}
                       {whatsappUrl && <WhatsAppPreviewCard />}
-                      {filledCustomLinks.map((url) => (
-                        <CustomLinkPreviewCard key={url} url={url} />
+                      {filledCustomLinks.map((item) => (
+                        <CustomLinkPreviewCard
+                          key={item.url}
+                          url={item.url}
+                          title={item.title}
+                        />
                       ))}
                     </div>
                   )}
