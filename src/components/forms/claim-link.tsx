@@ -4,8 +4,28 @@ import { claimLink } from '@/app/actions/claim-link';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { useDebounce } from '@/hooks/use-debounce';
 import { api } from '@/trpc/react';
+import { RESERVED_LINKS } from '@/types';
 import { Check, Loader2, X } from 'lucide-react';
 import { useState } from 'react';
+
+const VALID_LINK_RE = /^[a-z0-9-]+$/;
+
+function getFormatError(value: string): string | undefined {
+  const lower = value.toLowerCase();
+  if (lower.length < 3) {
+    return 'Deve ter pelo menos 3 caracteres.';
+  }
+  if (lower.length > 50) {
+    return 'Deve ter no máximo 50 caracteres.';
+  }
+  if (!VALID_LINK_RE.test(lower)) {
+    return 'Use apenas letras, números e hífens — sem espaços, "_" ou outros símbolos.';
+  }
+  if (RESERVED_LINKS.includes(lower)) {
+    return 'Esse nome é reservado pelo sistema.';
+  }
+  return;
+}
 
 function StatusIcon({
   isFetching,
@@ -26,14 +46,17 @@ function StatusIcon({
 export default function ClaimLinkForm() {
   const [link, setLink] = useState('');
   const debouncedLink = useDebounce(link, 500);
+  const formatError = debouncedLink ? getFormatError(debouncedLink) : undefined;
+  const hasValidFormat = !!debouncedLink && !formatError;
+
   const { data: available, isFetching } =
     api.profileLink.linkAvailable.useQuery(
       { link: debouncedLink },
-      { enabled: !!debouncedLink, staleTime: Number.POSITIVE_INFINITY }
+      { enabled: hasValidFormat, staleTime: Number.POSITIVE_INFINITY }
     );
 
   const handleAction = () => {
-    if (!debouncedLink || isFetching || !available) {
+    if (!hasValidFormat || isFetching || !available) {
       return;
     }
     claimLink(link).catch(console.error);
@@ -52,16 +75,22 @@ export default function ClaimLinkForm() {
         />
         {debouncedLink && (
           <div className="ml-auto">
-            <StatusIcon isFetching={isFetching} available={available} />
+            <StatusIcon
+              isFetching={hasValidFormat && isFetching}
+              available={hasValidFormat ? available : false}
+            />
           </div>
         )}
       </div>
-      {debouncedLink && !isFetching && !available && (
+      {debouncedLink && formatError && (
+        <p className="text-center text-red-500 text-sm">{formatError}</p>
+      )}
+      {hasValidFormat && !isFetching && !available && (
         <p className="text-center text-red-500 text-sm">
           Este nome de usuário já está em uso
         </p>
       )}
-      {debouncedLink && !isFetching && available && (
+      {hasValidFormat && !isFetching && available && (
         <GradientButton type="submit" className="w-full">
           Reservar minha página
         </GradientButton>
