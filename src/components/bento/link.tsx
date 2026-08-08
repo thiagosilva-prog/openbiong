@@ -28,6 +28,7 @@ import {
   FaInstagram,
   FaLinkedinIn,
   FaTwitch,
+  FaWhatsapp,
   FaYoutube,
 } from 'react-icons/fa';
 import type * as z from 'zod';
@@ -120,6 +121,15 @@ const PLATFORM_MAP: Record<string, PlatformInfo> = {
       className: 'rounded-full bg-[#FF0000] text-white hover:bg-[#cc0000]',
     },
   },
+  whatsapp: {
+    icon: <FaWhatsapp size={20} className="text-[#25D366]" />,
+    color: '#25D366',
+    bg: 'bg-[#25D366]/5',
+    action: {
+      label: 'Conversar',
+      className: 'rounded-full bg-[#25D366] text-white hover:bg-[#1ebe5b]',
+    },
+  },
 };
 
 function getPlatform(url: string): PlatformInfo | null | undefined {
@@ -147,6 +157,9 @@ function getPlatform(url: string): PlatformInfo | null | undefined {
   }
   if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
     return PLATFORM_MAP.youtube;
+  }
+  if (hostname.includes('wa.me') || hostname.includes('whatsapp.com')) {
+    return PLATFORM_MAP.whatsapp;
   }
   return null;
 }
@@ -205,11 +218,21 @@ function getLargeIcon(url: string) {
   if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
     return <FaYoutube size={32} className="text-[#FF0000]" />;
   }
+  if (hostname.includes('wa.me') || hostname.includes('whatsapp.com')) {
+    return <FaWhatsapp size={32} className="text-[#25D366]" />;
+  }
   return null;
 }
 
 function getTitle(url: string, metadata?: Metadata) {
   const urlObj = new URL(url);
+  if (
+    urlObj.hostname.includes('wa.me') ||
+    urlObj.hostname.includes('whatsapp.com')
+  ) {
+    return 'WhatsApp';
+  }
+
   const pathSegments = urlObj.pathname.split('/');
   let userHandle = pathSegments.pop();
   if (!userHandle) {
@@ -254,6 +277,9 @@ function getDescription(url: string, metadata?: Metadata) {
   }
   if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
     return `youtube.com/${userHandle}`;
+  }
+  if (hostname.includes('wa.me') || hostname.includes('whatsapp.com')) {
+    return 'Enviar mensagem';
   }
   return metadata?.description ?? null;
 }
