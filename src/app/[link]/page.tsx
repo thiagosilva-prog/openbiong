@@ -7,9 +7,7 @@ import OnboardingTour from '@/components/onboarding-tour';
 import { Skeleton } from '@/components/ui/skeleton';
 import { extractAttributionParams } from '@/lib/attribution';
 import { api } from '@/trpc/server';
-import { ArrowRight } from 'lucide-react';
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Suspense, cache } from 'react';
 import ActionBar from './_components/action-bar';
@@ -201,24 +199,13 @@ export default async function Page({ params, searchParams }: Props) {
                     </>
                   )}
 
-                  <footer className="animate-fade-in py-8 text-center">
-                    {profileLink.customFooter ? (
+                  {profileLink.customFooter && (
+                    <footer className="animate-fade-in py-8 text-center">
                       <p className="text-muted-foreground text-xs">
                         {profileLink.customFooter}
                       </p>
-                    ) : (
-                      <Link
-                        href="/claim-link"
-                        className="group inline-flex items-center gap-1.5 rounded-full border border-border bg-background/80 px-4 py-2 text-muted-foreground text-sm backdrop-blur-sm transition-all hover:border-primary hover:text-foreground"
-                      >
-                        Crie sua própria página gratuita no
-                        <span className="font-semibold text-foreground">
-                          OpenBio
-                        </span>
-                        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                      </Link>
-                    )}
-                  </footer>
+                    </footer>
+                  )}
                 </div>
               </ViewportContainer>
             </BentoHistoryProvider>
