@@ -51,7 +51,7 @@ const PLATFORM_MAP: Record<string, PlatformInfo> = {
     color: '#000000',
     bg: 'bg-foreground/5',
     action: {
-      label: 'Follow',
+      label: 'Seguir',
       className:
         'rounded-full bg-foreground text-background hover:bg-foreground/90',
     },
@@ -61,7 +61,7 @@ const PLATFORM_MAP: Record<string, PlatformInfo> = {
     color: '#0A66C2',
     bg: 'bg-[#0A66C2]/5',
     action: {
-      label: 'Connect',
+      label: 'Conectar',
       className: 'rounded-full bg-[#0A66C2] text-white hover:bg-[#004182]',
     },
   },
@@ -70,7 +70,7 @@ const PLATFORM_MAP: Record<string, PlatformInfo> = {
     color: '#333333',
     bg: 'bg-gray-500/5',
     action: {
-      label: 'Follow',
+      label: 'Seguir',
       className: 'rounded-full',
     },
   },
@@ -79,7 +79,7 @@ const PLATFORM_MAP: Record<string, PlatformInfo> = {
     color: '#F56040',
     bg: 'bg-[#F56040]/5',
     action: {
-      label: 'Follow',
+      label: 'Seguir',
       className:
         'rounded-full bg-foreground text-background hover:bg-foreground/90',
     },
@@ -89,7 +89,7 @@ const PLATFORM_MAP: Record<string, PlatformInfo> = {
     color: '#9146FF',
     bg: 'bg-[#9146FF]/5',
     action: {
-      label: 'Follow',
+      label: 'Seguir',
       className: 'rounded-full bg-[#9146FF] text-white hover:bg-[#7c3aed]',
     },
   },
@@ -98,7 +98,7 @@ const PLATFORM_MAP: Record<string, PlatformInfo> = {
     color: '#0088CC',
     bg: 'bg-[#0088CC]/5',
     action: {
-      label: 'Message',
+      label: 'Mensagem',
       className: 'rounded-full',
     },
   },
@@ -107,7 +107,7 @@ const PLATFORM_MAP: Record<string, PlatformInfo> = {
     color: '#5A65EA',
     bg: 'bg-[#5A65EA]/5',
     action: {
-      label: 'Join',
+      label: 'Entrar',
       className: 'rounded-full bg-[#5A65EA] text-white hover:bg-[#4752c4]',
     },
   },
@@ -116,7 +116,7 @@ const PLATFORM_MAP: Record<string, PlatformInfo> = {
     color: '#FF0000',
     bg: 'bg-[#FF0000]/5',
     action: {
-      label: 'Subscribe',
+      label: 'Inscrever-se',
       className: 'rounded-full bg-[#FF0000] text-white hover:bg-[#cc0000]',
     },
   },
@@ -628,7 +628,7 @@ export default function LinkCard({
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="font-cal text-xl">Edit Link</DialogTitle>
+            <DialogTitle className="font-cal text-xl">Editar Link</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -648,7 +648,7 @@ export default function LinkCard({
               disabled={isPending}
               className="w-full rounded-xl"
             >
-              {isPending ? 'Saving...' : 'Save'}
+              {isPending ? 'Salvando...' : 'Salvar'}
             </Button>
           </div>
         </DialogContent>

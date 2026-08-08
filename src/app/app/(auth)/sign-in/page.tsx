@@ -25,7 +25,7 @@ export default function SignInPage() {
     setError('');
     const result = await signIn.email({ email, password });
     if (result.error) {
-      setError(result.error.message ?? 'Something went wrong');
+      setError(result.error.message ?? 'Algo deu errado');
       setLoading(false);
       return;
     }
@@ -38,18 +38,16 @@ export default function SignInPage() {
         <Link href="/">
           <Image src={OpenBioLogo} alt="OpenBio" width={48} height={48} />
         </Link>
-        <h1 className="mt-4 font-cal text-2xl">Welcome back</h1>
-        <p className="mt-1 text-muted-foreground text-sm">
-          Sign in to your account
-        </p>
+        <h1 className="mt-4 font-cal text-2xl">Bem-vindo de volta</h1>
+        <p className="mt-1 text-muted-foreground text-sm">Entre na sua conta</p>
       </div>
       <form onSubmit={handleSubmit} className="flex flex-col gap-y-5">
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">E-mail</Label>
           <Input
             id="email"
             type="email"
-            placeholder="you@example.com"
+            placeholder="voce@exemplo.com"
             className="h-11 rounded-xl"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -57,7 +55,7 @@ export default function SignInPage() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">Senha</Label>
           <Input
             id="password"
             type="password"
@@ -72,7 +70,7 @@ export default function SignInPage() {
               href="/app/reset-password"
               className="text-muted-foreground text-sm hover:text-foreground"
             >
-              Forgot your password?
+              Esqueceu sua senha?
             </Link>
           </div>
         </div>
@@ -86,7 +84,7 @@ export default function SignInPage() {
           disabled={loading}
           className="mt-1 w-full"
         >
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Sign in'}
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Entrar'}
         </GradientButton>
       </form>
       <div className="relative my-6">
@@ -95,7 +93,7 @@ export default function SignInPage() {
         </div>
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-card px-2 text-muted-foreground">
-            or continue with
+            ou continue com
           </span>
         </div>
       </div>
@@ -154,12 +152,12 @@ export default function SignInPage() {
         </Button>
       </div>
       <p className="mt-6 text-center text-muted-foreground text-sm">
-        Don&apos;t have an account?{' '}
+        Ainda não tem uma conta?{' '}
         <Link
           href="/app/sign-up"
           className="font-medium text-foreground underline underline-offset-4 hover:text-violet-600"
         >
-          Sign up
+          Criar conta
         </Link>
       </p>
     </div>

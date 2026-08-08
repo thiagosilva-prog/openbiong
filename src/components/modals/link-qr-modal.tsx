@@ -93,8 +93,8 @@ export default function LinkQRModal({
       downloadRef.current.click();
       URL.revokeObjectURL(url);
       toast({
-        title: 'Downloaded!',
-        description: 'QR code saved as PNG.',
+        title: 'Baixado!',
+        description: 'QR Code salvo como PNG.',
       });
     });
   };
@@ -118,8 +118,8 @@ export default function LinkQRModal({
       const item = new ClipboardItem({ 'image/png': blob });
       navigator.clipboard.write([item]);
       toast({
-        title: 'Copied!',
-        description: 'QR code copied to clipboard.',
+        title: 'Copiado!',
+        description: 'QR Code copiado para a área de transferência.',
       });
     });
   };
@@ -138,14 +138,16 @@ export default function LinkQRModal({
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-medium text-sm">QR Code Preview</span>
+                  <span className="font-medium text-sm">
+                    Pré-visualização do QR Code
+                  </span>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <CircleHelp className="h-3.5 w-3.5 text-muted-foreground" />
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>
-                        This QR code links to your profile at openbio.app/{link}
+                        Este QR Code leva ao seu perfil em openbio.app/{link}
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -187,7 +189,7 @@ export default function LinkQRModal({
                     <CircleHelp className="h-3.5 w-3.5 text-muted-foreground" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Show the OpenBio logo in the center of the QR code</p>
+                    <p>Mostra o logo do OpenBio no centro do QR Code</p>
                   </TooltipContent>
                 </Tooltip>
               </div>
@@ -196,7 +198,7 @@ export default function LinkQRModal({
 
             {/* QR Code Color */}
             <div className="space-y-3">
-              <span className="font-medium text-sm">QR Code Color</span>
+              <span className="font-medium text-sm">Cor do QR Code</span>
               <div className="flex items-center gap-3">
                 <Popover>
                   <PopoverTrigger asChild>
@@ -270,19 +272,19 @@ export default function LinkQRModal({
                 className="rounded-xl px-6"
                 onClick={() => setOpen(false)}
               >
-                Cancel
+                Cancelar
               </Button>
               <Button
                 className="rounded-xl px-6"
                 onClick={() => {
                   toast({
-                    title: 'Settings saved!',
-                    description: 'Your QR code customization has been saved.',
+                    title: 'Configurações salvas!',
+                    description: 'A personalização do seu QR Code foi salva.',
                   });
                   setOpen(false);
                 }}
               >
-                Save changes
+                Salvar alterações
               </Button>
             </div>
           </div>

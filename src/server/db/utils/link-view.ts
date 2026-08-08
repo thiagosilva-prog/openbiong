@@ -164,7 +164,7 @@ export async function getDeviceBreakdown(linkId: string, days: number) {
   for (const row of rows) {
     const ua = UAParser(row.userAgent ?? undefined);
     const device = ua.device.type || 'desktop';
-    const browser = ua.browser.name || 'Unknown';
+    const browser = ua.browser.name || 'Desconhecido';
     devices[device] = (devices[device] ?? 0) + 1;
     browsers[browser] = (browsers[browser] ?? 0) + 1;
   }
@@ -194,7 +194,7 @@ export async function getGeoBreakdown(linkId: string, days: number) {
 
   const result = await db
     .select({
-      country: sql<string>`coalesce(${linkView.country}, 'Unknown')`,
+      country: sql<string>`coalesce(${linkView.country}, 'Desconhecido')`,
       count: count(),
     })
     .from(linkView)
@@ -246,9 +246,9 @@ export async function getUtmBreakdown(linkId: string, days: number) {
   const since = new Date();
   since.setDate(since.getDate() - days);
 
-  const source = sql<string>`coalesce(${linkView.utmSource}, 'Direct')`;
-  const medium = sql<string>`coalesce(${linkView.utmMedium}, 'none')`;
-  const campaign = sql<string>`coalesce(${linkView.utmCampaign}, '(not set)')`;
+  const source = sql<string>`coalesce(${linkView.utmSource}, 'Direto')`;
+  const medium = sql<string>`coalesce(${linkView.utmMedium}, 'nenhum')`;
+  const campaign = sql<string>`coalesce(${linkView.utmCampaign}, '(não definido)')`;
 
   const result = await db
     .select({ source, medium, campaign, count: count() })
@@ -283,7 +283,7 @@ export async function getTrafficSourceBreakdown(linkId: string, days: number) {
     when ${linkView.fbclid} is not null then 'Facebook/Instagram Ads'
     when ${linkView.gclid} is not null then 'Google Ads'
     when ${linkView.ttclid} is not null then 'TikTok Ads'
-    else 'Organic/Direct'
+    else 'Orgânico/Direto'
   end`;
 
   const result = await db
@@ -316,9 +316,9 @@ export async function getLocationBreakdown(linkId: string, days: number) {
   const since = new Date();
   since.setDate(since.getDate() - days);
 
-  const country = sql<string>`coalesce(${linkView.country}, 'Unknown')`;
-  const region = sql<string>`coalesce(${linkView.region}, 'Unknown')`;
-  const city = sql<string>`coalesce(${linkView.city}, 'Unknown')`;
+  const country = sql<string>`coalesce(${linkView.country}, 'Desconhecido')`;
+  const region = sql<string>`coalesce(${linkView.region}, 'Desconhecido')`;
+  const city = sql<string>`coalesce(${linkView.city}, 'Desconhecido')`;
 
   const result = await db
     .select({ country, region, city, count: count() })

@@ -96,7 +96,7 @@ export const profileLinkRouter = createTRPCRouter({
       const profileLink = await createProfileLink({
         link: input.link,
         name: input.name || input.link,
-        bio: input.bio || "I'm using OpenBio.app!",
+        bio: input.bio || 'Estou usando o OpenBio.app!',
         bento,
         userId: user.id,
       });

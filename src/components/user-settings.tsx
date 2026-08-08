@@ -17,7 +17,7 @@ export default async function UserSettings({
     <div className="flex w-full flex-col gap-y-6">
       <div className="flex flex-col gap-y-6 rounded-lg border border-border bg-background px-4 py-4 md:px-6 md:py-6">
         <div className="space-y-2">
-          <Label>Your Avatar</Label>
+          <Label>Seu Avatar</Label>
 
           <Avatar>
             <AvatarImage src={session?.user?.image ?? undefined} />
@@ -28,13 +28,13 @@ export default async function UserSettings({
         </div>
 
         <div className="space-y-2">
-          <Label>Your Email</Label>
+          <Label>Seu E-mail</Label>
 
           <Input value={user.email} readOnly className="w-max" />
         </div>
 
         <div className="space-y-2">
-          <Label>Your Name</Label>
+          <Label>Seu Nome</Label>
 
           <Input value={user.name} readOnly className="w-max" />
         </div>

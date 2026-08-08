@@ -41,14 +41,14 @@ export function UserMenu() {
           className="cursor-pointer gap-x-2 rounded-lg"
         >
           <Settings className="h-4 w-4" />
-          Settings
+          Configurações
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={handleSignOut}
           className="cursor-pointer gap-x-2 rounded-lg text-destructive"
         >
           <LogOut className="h-4 w-4" />
-          Sign out
+          Sair
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

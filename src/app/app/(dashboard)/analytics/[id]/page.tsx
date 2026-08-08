@@ -18,7 +18,7 @@ export default async function AnalyticsPage({ params }: Props) {
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
-        <h1 className="font-cal text-3xl">Analytics</h1>
+        <h1 className="font-cal text-3xl">Análises</h1>
       </div>
 
       <Analytics linkId={id} />

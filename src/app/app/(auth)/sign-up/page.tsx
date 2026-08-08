@@ -26,7 +26,7 @@ export default function SignUpPage() {
     setError('');
     const result = await signUp.email({ name, email, password });
     if (result.error) {
-      setError(result.error.message ?? 'Something went wrong');
+      setError(result.error.message ?? 'Algo deu errado');
       setLoading(false);
       return;
     }
@@ -39,18 +39,18 @@ export default function SignUpPage() {
         <Link href="/">
           <Image src={OpenBioLogo} alt="OpenBio" width={48} height={48} />
         </Link>
-        <h1 className="mt-4 font-cal text-2xl">Create your account</h1>
+        <h1 className="mt-4 font-cal text-2xl">Crie sua conta</h1>
         <p className="mt-1 text-muted-foreground text-sm">
-          Get started with OpenBio
+          Comece a usar o OpenBio
         </p>
       </div>
       <form onSubmit={handleSubmit} className="flex flex-col gap-y-5">
         <div className="space-y-2">
-          <Label htmlFor="name">Display name</Label>
+          <Label htmlFor="name">Nome de exibição</Label>
           <Input
             id="name"
             type="text"
-            placeholder="John Doe"
+            placeholder="Maria Silva"
             className="h-11 rounded-xl"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -58,11 +58,11 @@ export default function SignUpPage() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">E-mail</Label>
           <Input
             id="email"
             type="email"
-            placeholder="you@example.com"
+            placeholder="voce@exemplo.com"
             className="h-11 rounded-xl"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -70,7 +70,7 @@ export default function SignUpPage() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">Senha</Label>
           <Input
             id="password"
             type="password"
@@ -95,7 +95,7 @@ export default function SignUpPage() {
           {loading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            'Create account'
+            'Criar conta'
           )}
         </GradientButton>
       </form>
@@ -105,7 +105,7 @@ export default function SignUpPage() {
         </div>
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-card px-2 text-muted-foreground">
-            or continue with
+            ou continue com
           </span>
         </div>
       </div>
@@ -164,12 +164,12 @@ export default function SignUpPage() {
         </Button>
       </div>
       <p className="mt-6 text-center text-muted-foreground text-sm">
-        Already have an account?{' '}
+        Já tem uma conta?{' '}
         <Link
           href="/app/sign-in"
           className="font-medium text-foreground underline underline-offset-4 hover:text-violet-600"
         >
-          Sign in
+          Entrar
         </Link>
       </p>
     </div>

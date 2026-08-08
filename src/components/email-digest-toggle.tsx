@@ -17,10 +17,10 @@ export default function EmailDigestToggle({
     onSuccess: (data) => {
       setEnabled(data.emailDigest);
       toast({
-        title: data.emailDigest ? 'Digest enabled' : 'Digest disabled',
+        title: data.emailDigest ? 'Resumo ativado' : 'Resumo desativado',
         description: data.emailDigest
-          ? 'You will receive weekly analytics emails.'
-          : 'You will no longer receive digest emails.',
+          ? 'Você receberá e-mails semanais com o resumo de estatísticas.'
+          : 'Você não receberá mais e-mails de resumo.',
       });
     },
   });
@@ -28,10 +28,10 @@ export default function EmailDigestToggle({
   return (
     <div className="flex items-center justify-between">
       <div className="space-y-0.5">
-        <Label htmlFor="email-digest">Weekly analytics digest</Label>
+        <Label htmlFor="email-digest">Resumo semanal de estatísticas</Label>
         <p className="text-muted-foreground text-xs">
-          Receive a weekly summary of your profile views, clicks, and
-          subscribers.
+          Receba um resumo semanal das visualizações, cliques e inscritos do seu
+          perfil.
         </p>
       </div>
       <Switch

@@ -76,7 +76,7 @@ export default function ThemeSettingsModal({
         showClose
       >
         <DialogHeader>
-          <DialogTitle className="font-cal text-xl">Customize</DialogTitle>
+          <DialogTitle className="font-cal text-xl">Personalizar</DialogTitle>
         </DialogHeader>
 
         <div
@@ -88,7 +88,7 @@ export default function ThemeSettingsModal({
             <div className="space-y-3">
               <SectionHeader
                 icon={<Palette className="h-4 w-4" />}
-                title="Theme"
+                title="Tema"
               />
               <div className="grid grid-cols-2 gap-2">
                 {THEME_PRESETS.map((preset) => {
@@ -139,7 +139,7 @@ export default function ThemeSettingsModal({
               <div className="flex items-center justify-between">
                 <SectionHeader
                   icon={<Moon className="h-4 w-4" />}
-                  title="Dark Mode"
+                  title="Modo Escuro"
                 />
                 <Switch checked={darkMode} onCheckedChange={setDarkMode} />
               </div>
@@ -149,7 +149,7 @@ export default function ThemeSettingsModal({
             <div className="space-y-3">
               <SectionHeader
                 icon={<Paintbrush className="h-4 w-4" />}
-                title="Accent Color"
+                title="Cor de Destaque"
               />
               <div className="flex items-center gap-2">
                 <div className="relative">
@@ -175,7 +175,7 @@ export default function ThemeSettingsModal({
                     className="shrink-0 rounded-xl text-xs"
                     onClick={() => setAccentColor('')}
                   >
-                    Reset
+                    Redefinir
                   </Button>
                 )}
               </div>
@@ -185,18 +185,18 @@ export default function ThemeSettingsModal({
             <div className="space-y-3">
               <SectionHeader
                 icon={<Type className="h-4 w-4" />}
-                title="Footer Text"
+                title="Texto do Rodapé"
               />
               <input
                 type="text"
                 className="h-9 w-full rounded-xl border border-border bg-card px-3 text-sm"
-                placeholder="Made with OpenBio"
+                placeholder="Feito com OpenBio"
                 value={customFooter}
                 maxLength={100}
                 onChange={(e) => setCustomFooter(e.target.value)}
               />
               <p className="text-muted-foreground text-xs">
-                Shown at the bottom of your profile page.
+                Exibido na parte inferior da sua página de perfil.
               </p>
             </div>
           </div>
@@ -209,14 +209,14 @@ export default function ThemeSettingsModal({
             className="rounded-xl px-6"
             onClick={() => setOpen(false)}
           >
-            Cancel
+            Cancelar
           </Button>
           <Button
             onClick={save}
             disabled={isPending}
             className="rounded-xl px-6"
           >
-            {isPending ? 'Saving...' : 'Save changes'}
+            {isPending ? 'Salvando...' : 'Salvar alterações'}
           </Button>
         </div>
       </DialogContent>

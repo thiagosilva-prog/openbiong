@@ -87,14 +87,14 @@ const SOCIAL_COLORS: Record<string, { text: string; bg: string }> = {
 };
 
 const SOCIAL_ACTIONS: Record<string, string> = {
-  twitter: 'Follow',
-  github: 'Follow',
-  instagram: 'Follow',
-  linkedin: 'Connect',
-  youtube: 'Subscribe',
-  discord: 'Join',
-  telegram: 'Message',
-  twitch: 'Follow',
+  twitter: 'Seguir',
+  github: 'Seguir',
+  instagram: 'Seguir',
+  linkedin: 'Conectar',
+  youtube: 'Inscrever-se',
+  discord: 'Entrar',
+  telegram: 'Mensagem',
+  twitch: 'Seguir',
 };
 
 const PROTOCOL_RE = /^https?:\/\//;
@@ -127,7 +127,7 @@ function WhatsAppPreviewCard() {
           <FaWhatsapp size={16} className="text-[#25D366]" />
         </div>
         <span className="rounded-full bg-foreground px-2.5 py-0.5 text-[9px] text-background">
-          Message
+          Mensagem
         </span>
       </div>
       <div className="mt-2">
@@ -152,7 +152,7 @@ function CustomLinkPreviewCard({ url }: { url: string }) {
           <Link2 size={16} className="text-foreground" />
         </div>
         <span className="rounded-full bg-foreground px-2.5 py-0.5 text-[9px] text-background">
-          Visit
+          Visitar
         </span>
       </div>
       <div className="mt-2">
@@ -175,7 +175,7 @@ function PreviewCard({
     text: 'text-foreground',
     bg: 'bg-muted',
   };
-  const action = SOCIAL_ACTIONS[platform] ?? 'Visit';
+  const action = SOCIAL_ACTIONS[platform] ?? 'Visitar';
   const url = SOCIAL_URLS[platform] ?? '';
 
   return (
@@ -274,7 +274,7 @@ export default function Page() {
                 <Image src={OpenBioLogo} alt="OpenBio" width={36} height={36} />
               </Link>
               <div>
-                <h1 className="font-cal text-xl">Set up your page</h1>
+                <h1 className="font-cal text-xl">Configure sua página</h1>
                 <p className="text-muted-foreground text-xs">
                   openbio.app/{link}
                 </p>
@@ -285,11 +285,11 @@ export default function Page() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name" className="font-medium text-sm">
-                  Display name
+                  Nome de exibição
                 </Label>
                 <Input
                   id="name"
-                  placeholder="John Doe"
+                  placeholder="Maria Silva"
                   className="rounded-xl"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -315,14 +315,14 @@ export default function Page() {
                       className="h-7 gap-1 text-violet-500 text-xs"
                     >
                       <Sparkles className="h-3 w-3" />
-                      Write with AI
+                      Escrever com IA
                     </Button>
                   </BioWriter>
                 </div>
                 <textarea
                   id="bio"
                   rows={2}
-                  placeholder="Tell the world about yourself..."
+                  placeholder="Conte ao mundo um pouco sobre você..."
                   className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50"
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
@@ -332,7 +332,7 @@ export default function Page() {
 
             {/* Social Links */}
             <div className="space-y-3">
-              <Label className="font-medium text-sm">Social links</Label>
+              <Label className="font-medium text-sm">Redes sociais</Label>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {SOCIALS.map((social) => (
                   <div
@@ -373,14 +373,14 @@ export default function Page() {
                   <MessageCircle className="h-4 w-4 shrink-0 text-muted-foreground" />
                   <input
                     className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                    placeholder="Custom message (optional)"
+                    placeholder="Mensagem personalizada (opcional)"
                     value={whatsappMessage}
                     onChange={(e) => setWhatsappMessage(e.target.value)}
                   />
                 </div>
               </div>
               <p className="text-muted-foreground text-xs">
-                Include the country code, digits only (e.g. 5511999999999).
+                Inclua o código do país, somente números (ex.: 5511999999999).
               </p>
             </div>
 
@@ -396,7 +396,7 @@ export default function Page() {
                     <Link2 className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <input
                       className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                      placeholder="https://example.com"
+                      placeholder="https://exemplo.com"
                       value={url}
                       onChange={(e) =>
                         handleCustomLinkChange(index, e.target.value)
@@ -422,7 +422,7 @@ export default function Page() {
                 onClick={addCustomLink}
               >
                 <Plus className="h-3.5 w-3.5" />
-                Add another link
+                Adicionar outro link
               </Button>
             </div>
 
@@ -432,7 +432,7 @@ export default function Page() {
                 href="/claim-link"
                 className="text-muted-foreground text-sm hover:text-foreground"
               >
-                ← Back
+                ← Voltar
               </Link>
               <GradientButton
                 onClick={() => {
@@ -443,10 +443,10 @@ export default function Page() {
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating...
+                    Criando...
                   </>
                 ) : (
-                  'Create page'
+                  'Criar página'
                 )}
               </GradientButton>
             </div>
@@ -456,7 +456,7 @@ export default function Page() {
           <div className="hidden border-border/50 border-l bg-muted/20 lg:block">
             <div className="sticky top-0 p-5">
               <p className="mb-3 font-medium text-[10px] text-muted-foreground uppercase tracking-widest">
-                Live Preview
+                Pré-visualização ao vivo
               </p>
 
               {/* Scaled-down profile preview */}
@@ -470,10 +470,10 @@ export default function Page() {
                       </AvatarFallback>
                     </Avatar>
                     <h3 className="mt-2.5 font-cal text-base">
-                      {name || 'Your Name'}
+                      {name || 'Seu Nome'}
                     </h3>
                     <p className="text-[10px] text-muted-foreground">
-                      @{link || 'username'}
+                      @{link || 'usuario'}
                     </p>
                     {bio && (
                       <p className="mt-1.5 line-clamp-2 max-w-[220px] text-[10px] text-muted-foreground leading-relaxed">
@@ -519,7 +519,7 @@ export default function Page() {
                             className="flex h-20 items-center justify-center rounded-xl border border-border/40 border-dashed bg-muted/30"
                           >
                             <span className="text-[9px] text-muted-foreground/30">
-                              Card
+                              Cartão
                             </span>
                           </div>
                         ))}
@@ -529,7 +529,7 @@ export default function Page() {
                   {/* Footer */}
                   <div className="mt-4 text-center">
                     <span className="text-[8px] text-muted-foreground/50">
-                      openbio.app/{link || 'username'}
+                      openbio.app/{link || 'usuario'}
                     </span>
                   </div>
                 </div>

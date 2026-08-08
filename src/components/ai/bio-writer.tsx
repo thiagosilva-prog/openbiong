@@ -17,9 +17,9 @@ import { type ReactNode, useState } from 'react';
 
 const TONES = [
   { value: 'casual', label: 'Casual' },
-  { value: 'professional', label: 'Professional' },
-  { value: 'creative', label: 'Creative' },
-  { value: 'minimal', label: 'Minimal' },
+  { value: 'professional', label: 'Profissional' },
+  { value: 'creative', label: 'Criativo' },
+  { value: 'minimal', label: 'Minimalista' },
 ] as const;
 
 export default function BioWriter({
@@ -41,7 +41,7 @@ export default function BioWriter({
     api: '/api/ai/generate',
     onError: (err) => {
       toast({
-        title: 'Error',
+        title: 'Erro',
         description: err.message,
         variant: 'destructive',
       });
@@ -58,8 +58,8 @@ export default function BioWriter({
     onGenerated(completion);
     setOpen(false);
     toast({
-      title: 'Bio updated!',
-      description: 'Your AI-generated bio has been applied.',
+      title: 'Bio atualizada!',
+      description: 'Sua bio gerada por IA foi aplicada.',
     });
   };
 
@@ -70,13 +70,13 @@ export default function BioWriter({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 font-cal text-xl">
             <Sparkles className="h-4 w-4 text-violet-500" />
-            AI Bio Writer
+            Assistente de Bio com IA
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label className="font-medium text-sm">Tone</Label>
+            <Label className="font-medium text-sm">Tom</Label>
             <div className="flex gap-2">
               {TONES.map((t) => (
                 <button
@@ -97,14 +97,14 @@ export default function BioWriter({
 
           <div className="space-y-2">
             <Label htmlFor="ai-context" className="font-medium text-sm">
-              Tell us about yourself{' '}
+              Conte-nos sobre você{' '}
               <span className="font-normal text-muted-foreground">
-                (optional)
+                (opcional)
               </span>
             </Label>
             <Input
               id="ai-context"
-              placeholder="e.g. developer, photographer, based in NYC..."
+              placeholder="ex: desenvolvedor, fotógrafo, baseado em São Paulo..."
               value={context}
               onChange={(e) => setContext(e.target.value)}
               className="rounded-xl"
@@ -121,7 +121,7 @@ export default function BioWriter({
             ) : (
               <Wand2 className="mr-2 h-4 w-4" />
             )}
-            {isLoading ? 'Generating...' : 'Generate Bio'}
+            {isLoading ? 'Gerando...' : 'Gerar Bio'}
           </Button>
 
           {completion && (
@@ -136,14 +136,14 @@ export default function BioWriter({
                   onClick={handleGenerate}
                   disabled={isLoading}
                 >
-                  Regenerate
+                  Gerar Novamente
                 </Button>
                 <Button
                   className="flex-1 rounded-xl"
                   onClick={handleApply}
                   disabled={isLoading}
                 >
-                  Apply
+                  Aplicar
                 </Button>
               </div>
             </div>

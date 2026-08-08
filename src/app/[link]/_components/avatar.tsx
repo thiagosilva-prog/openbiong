@@ -35,13 +35,13 @@ export default function ProfileLinkAvatar({ profileLink }: Props) {
         });
         const data = (await res.json()) as { url?: string; error?: string };
         if (!res.ok || !data.url) {
-          throw new Error(data.error ?? 'Upload failed');
+          throw new Error(data.error ?? 'Falha no envio');
         }
         setImg(data.url);
       } catch (err) {
         toast({
-          title: 'Error',
-          description: err instanceof Error ? err.message : 'Upload failed',
+          title: 'Erro',
+          description: err instanceof Error ? err.message : 'Falha no envio',
         });
         setImg(profileLink.image ?? '/openbio.png');
       }
@@ -72,7 +72,7 @@ export default function ProfileLinkAvatar({ profileLink }: Props) {
         <Image
           key={img}
           src={img}
-          alt="Profile link image"
+          alt="Imagem do perfil"
           width={150}
           height={150}
           priority
@@ -83,7 +83,7 @@ export default function ProfileLinkAvatar({ profileLink }: Props) {
       {profileLink.isOwner && !img && (
         <>
           <UploadCloud className="h-8 w-8 text-muted-foreground" />
-          <p className="font-semibold text-muted-foreground text-sm">Upload</p>
+          <p className="font-semibold text-muted-foreground text-sm">Enviar</p>
         </>
       )}
 

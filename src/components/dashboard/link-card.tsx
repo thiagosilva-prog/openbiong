@@ -19,7 +19,7 @@ export function DashboardLinkCard({ link }: { link: ProfileLink }) {
           {link.image ? (
             <Image
               src={link.image}
-              alt={link.name ?? 'Profile'}
+              alt={link.name ?? 'Perfil'}
               width={56}
               height={56}
               className="h-full w-full object-cover"
@@ -37,7 +37,7 @@ export function DashboardLinkCard({ link }: { link: ProfileLink }) {
         <div className="mt-3 flex items-center gap-x-3 text-muted-foreground text-xs">
           <span className="flex items-center gap-x-1">
             <Eye className="h-3.5 w-3.5" />
-            {views ?? 0} Views
+            {views ?? 0} Visualizações
           </span>
         </div>
       </div>

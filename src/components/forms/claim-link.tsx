@@ -46,7 +46,7 @@ export default function ClaimLinkForm() {
         <input
           className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           autoFocus
-          placeholder="yourname"
+          placeholder="seunome"
           value={link}
           onChange={(e) => setLink(e.target.value)}
         />
@@ -58,12 +58,12 @@ export default function ClaimLinkForm() {
       </div>
       {debouncedLink && !isFetching && !available && (
         <p className="text-center text-red-500 text-sm">
-          This username is taken
+          Este nome de usuário já está em uso
         </p>
       )}
       {debouncedLink && !isFetching && available && (
         <GradientButton type="submit" className="w-full">
-          Claim my page
+          Reservar minha página
         </GradientButton>
       )}
       <p className="text-center">
@@ -71,7 +71,7 @@ export default function ClaimLinkForm() {
           href="/"
           className="text-muted-foreground text-xs transition-colors hover:text-foreground"
         >
-          ← Back to home
+          ← Voltar para a página inicial
         </a>
       </p>
     </form>

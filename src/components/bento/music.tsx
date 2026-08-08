@@ -56,7 +56,9 @@ function MusicDisplay({
           )}
         />
         <p className="text-muted-foreground text-xs">
-          {compact ? 'Add a song' : 'Paste a Spotify or Apple Music link'}
+          {compact
+            ? 'Adicionar uma música'
+            : 'Cole um link do Spotify ou Apple Music'}
         </p>
       </div>
     );
@@ -86,9 +88,9 @@ function MusicDisplay({
           <Music className="h-5 w-5 text-foreground" />
         </div>
         <div className="mt-auto">
-          <p className="font-cal text-sm leading-tight">Listen</p>
+          <p className="font-cal text-sm leading-tight">Ouvir</p>
           <p className="mt-1 flex items-center gap-1 text-muted-foreground text-xs">
-            Open <ExternalLink className="h-3 w-3" />
+            Abrir <ExternalLink className="h-3 w-3" />
           </p>
         </div>
       </a>
@@ -184,7 +186,7 @@ function MusicDisplay({
           <div className="mt-3 flex items-center gap-2">
             <ProviderIcon provider={metadata.provider} />
             <span className="text-white/50 text-xs">
-              Listen on{' '}
+              Ouvir no{' '}
               {metadata.provider === 'spotify' ? 'Spotify' : 'Apple Music'}
             </span>
           </div>
@@ -275,23 +277,23 @@ export default function MusicCard({
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="font-cal text-xl">
-              Edit Music Card
+              Editar Cartão de Música
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="music-url" className="font-medium text-sm">
-                Song or Playlist URL
+                URL da Música ou Playlist
               </Label>
               <Input
                 id="music-url"
-                placeholder="https://open.spotify.com/track/... or https://music.apple.com/..."
+                placeholder="https://open.spotify.com/track/... ou https://music.apple.com/..."
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 className="rounded-xl"
               />
               <p className="text-muted-foreground text-xs">
-                Paste a Spotify or Apple Music link
+                Cole um link do Spotify ou Apple Music
               </p>
             </div>
 
@@ -323,7 +325,7 @@ export default function MusicCard({
               disabled={isPending}
               className="w-full rounded-xl"
             >
-              {isPending ? 'Saving...' : 'Save'}
+              {isPending ? 'Salvando...' : 'Salvar'}
             </Button>
           </div>
         </DialogContent>

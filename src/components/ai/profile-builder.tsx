@@ -39,7 +39,7 @@ export default function ProfileBuilder({
     },
     onError: (err) => {
       toast({
-        title: 'Error',
+        title: 'Erro',
         description: err.message,
         variant: 'destructive',
       });
@@ -59,16 +59,16 @@ export default function ProfileBuilder({
     setResult(null);
     setDescription('');
     toast({
-      title: 'Profile built!',
-      description: 'AI suggestions have been applied to your profile.',
+      title: 'Perfil criado!',
+      description: 'As sugestões de IA foram aplicadas ao seu perfil.',
     });
   };
 
   const cardTypeLabels: Record<string, string> = {
     link: 'Link',
-    note: 'Note',
-    music: 'Music',
-    calendar: 'Booking',
+    note: 'Nota',
+    music: 'Música',
+    calendar: 'Agendamento',
     github: 'GitHub',
     'email-collect': 'Newsletter',
   };
@@ -80,24 +80,24 @@ export default function ProfileBuilder({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 font-cal text-xl">
             <Sparkles className="h-4 w-4 text-violet-500" />
-            AI Profile Builder
+            Criador de Perfil com IA
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="ai-desc" className="font-medium text-sm">
-              Describe yourself
+              Descreva-se
             </Label>
             <Input
               id="ai-desc"
-              placeholder="e.g. I'm a freelance photographer based in Mumbai who shoots weddings and street photography"
+              placeholder="ex: sou fotógrafo freelancer baseado em São Paulo, faço casamentos e fotografia de rua"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="rounded-xl"
             />
             <p className="text-muted-foreground text-xs">
-              The more detail you give, the better the suggestions.
+              Quanto mais detalhes você der, melhores serão as sugestões.
             </p>
           </div>
 
@@ -111,14 +111,14 @@ export default function ProfileBuilder({
             ) : (
               <Wand2 className="mr-2 h-4 w-4" />
             )}
-            {isPending ? 'Building...' : 'Build Profile'}
+            {isPending ? 'Criando...' : 'Criar Perfil'}
           </Button>
 
           {result && (
             <div className="space-y-4">
               {/* Generated bio */}
               <div className="space-y-1.5">
-                <p className="font-medium text-sm">Suggested Bio</p>
+                <p className="font-medium text-sm">Bio Sugerida</p>
                 <div className="rounded-xl border border-border bg-muted/50 p-3">
                   <p className="text-sm leading-relaxed">{result.bio}</p>
                 </div>
@@ -126,7 +126,7 @@ export default function ProfileBuilder({
 
               {/* Suggested cards */}
               <div className="space-y-1.5">
-                <p className="font-medium text-sm">Suggested Cards</p>
+                <p className="font-medium text-sm">Cartões Sugeridos</p>
                 <div className="space-y-2">
                   {result.cards.map((card, i) => (
                     <div
@@ -159,10 +159,10 @@ export default function ProfileBuilder({
                   onClick={handleBuild}
                   disabled={isPending}
                 >
-                  Regenerate
+                  Gerar Novamente
                 </Button>
                 <Button className="flex-1 rounded-xl" onClick={handleApply}>
-                  Apply All
+                  Aplicar Tudo
                 </Button>
               </div>
             </div>

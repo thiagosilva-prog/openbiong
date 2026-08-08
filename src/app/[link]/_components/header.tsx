@@ -31,7 +31,7 @@ const extensions = [
     underline: false,
   }),
   Placeholder.configure({
-    placeholder: 'Tell us about yourself!',
+    placeholder: 'Conte-nos sobre você!',
     showOnlyWhenEditable: true,
   }),
   TiptapLink.configure({ openOnClick: false }),
@@ -153,14 +153,15 @@ export default function ProfileLinkHeader({
                       .writeText(`https://openbio.app/${profileLink.link}`)
                       .then(() => {
                         toast({
-                          title: 'Copied to clipboard!',
-                          description: 'Copied profile link to clipboard!',
+                          title: 'Copiado para a área de transferência!',
+                          description:
+                            'Link do perfil copiado para a área de transferência!',
                         });
                       })
                       .catch(() => undefined);
                   }}
                 >
-                  {saving ? 'Saving...' : 'Share'}
+                  {saving ? 'Salvando...' : 'Compartilhar'}
                 </Button>
 
                 <LinkQRModal>
@@ -183,7 +184,7 @@ export default function ProfileLinkHeader({
                 if (navigator.share) {
                   navigator
                     .share({
-                      title: profileLink.name ?? 'OpenBio Profile',
+                      title: profileLink.name ?? 'Perfil OpenBio',
                       url,
                     })
                     .catch(() => undefined);
@@ -192,8 +193,8 @@ export default function ProfileLinkHeader({
                     .writeText(url)
                     .then(() => {
                       toast({
-                        title: 'Copied to clipboard!',
-                        description: 'Profile link copied!',
+                        title: 'Copiado para a área de transferência!',
+                        description: 'Link do perfil copiado!',
                       });
                     })
                     .catch(() => undefined);
@@ -201,7 +202,7 @@ export default function ProfileLinkHeader({
               }}
             >
               <Share2 className="mr-1.5 h-4 w-4" />
-              Share
+              Compartilhar
             </Button>
             <LinkQRModal>
               <Button size="icon" variant="outline" className="h-9 w-9">

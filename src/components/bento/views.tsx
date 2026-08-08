@@ -50,7 +50,9 @@ function CompactViews({ views }: { views: number }) {
         <p className="font-cal text-3xl leading-tight">
           {animatedCount.toLocaleString()}
         </p>
-        <p className="mt-1 text-muted-foreground text-xs">profile views</p>
+        <p className="mt-1 text-muted-foreground text-xs">
+          visualizações do perfil
+        </p>
       </div>
     </div>
   );
@@ -64,7 +66,7 @@ function BannerViews({ views }: { views: number }) {
       <p className="font-cal text-xl leading-tight">
         {animatedCount.toLocaleString()}
       </p>
-      <p className="text-muted-foreground text-sm">profile views</p>
+      <p className="text-muted-foreground text-sm">visualizações do perfil</p>
     </div>
   );
 }

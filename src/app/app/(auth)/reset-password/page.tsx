@@ -48,19 +48,19 @@ function ResetPasswordForm() {
     });
 
     if (result.error) {
-      setError(result.error.message ?? 'Something went wrong');
+      setError(result.error.message ?? 'Algo deu errado');
       setLoading(false);
       return;
     }
 
-    setSuccess('Check your email for a password reset link.');
+    setSuccess('Verifique seu e-mail para o link de redefinição de senha.');
     setLoading(false);
   };
 
   const handleResetPassword = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('As senhas não coincidem');
       return;
     }
     setLoading(true);
@@ -73,12 +73,12 @@ function ResetPasswordForm() {
     });
 
     if (result.error) {
-      setError(result.error.message ?? 'Something went wrong');
+      setError(result.error.message ?? 'Algo deu errado');
       setLoading(false);
       return;
     }
 
-    setSuccess('Your password has been reset. You can now sign in.');
+    setSuccess('Sua senha foi redefinida. Agora você já pode entrar.');
     setLoading(false);
   };
 
@@ -89,19 +89,19 @@ function ResetPasswordForm() {
           <Image src={OpenBioLogo} alt="OpenBio" width={48} height={48} />
         </Link>
         <h1 className="mt-4 font-cal text-2xl">
-          {token ? 'Choose a new password' : 'Reset your password'}
+          {token ? 'Escolha uma nova senha' : 'Redefinir sua senha'}
         </h1>
         <p className="mt-1 text-muted-foreground text-sm">
           {token
-            ? 'Enter your new password below'
-            : "We'll send you a link to reset your password"}
+            ? 'Digite sua nova senha abaixo'
+            : 'Vamos enviar um link para você redefinir sua senha'}
         </p>
       </div>
 
       {token ? (
         <form onSubmit={handleResetPassword} className="flex flex-col gap-y-5">
           <div className="space-y-2">
-            <Label htmlFor="newPassword">New password</Label>
+            <Label htmlFor="newPassword">Nova senha</Label>
             <Input
               id="newPassword"
               type="password"
@@ -114,7 +114,7 @@ function ResetPasswordForm() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm new password</Label>
+            <Label htmlFor="confirmPassword">Confirme a nova senha</Label>
             <Input
               id="confirmPassword"
               type="password"
@@ -144,7 +144,7 @@ function ResetPasswordForm() {
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              'Reset password'
+              'Redefinir senha'
             )}
           </GradientButton>
           {success && (
@@ -152,18 +152,18 @@ function ResetPasswordForm() {
               href="/app/sign-in"
               className="text-center text-muted-foreground text-sm underline underline-offset-4 hover:text-foreground"
             >
-              Go to sign in
+              Ir para o login
             </Link>
           )}
         </form>
       ) : (
         <form onSubmit={handleRequestReset} className="flex flex-col gap-y-5">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">E-mail</Label>
             <Input
               id="email"
               type="email"
-              placeholder="you@example.com"
+              placeholder="voce@exemplo.com"
               className="h-11 rounded-xl"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -188,19 +188,19 @@ function ResetPasswordForm() {
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              'Send reset link'
+              'Enviar link de redefinição'
             )}
           </GradientButton>
         </form>
       )}
 
       <p className="mt-6 text-center text-muted-foreground text-sm">
-        Remember your password?{' '}
+        Lembrou sua senha?{' '}
         <Link
           href="/app/sign-in"
           className="font-medium text-foreground underline underline-offset-4 hover:text-violet-600"
         >
-          Sign in
+          Entrar
         </Link>
       </p>
     </div>

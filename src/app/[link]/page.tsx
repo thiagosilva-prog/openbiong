@@ -211,7 +211,7 @@ export default async function Page({ params, searchParams }: Props) {
                         href="/claim-link"
                         className="group inline-flex items-center gap-1.5 rounded-full border border-border bg-background/80 px-4 py-2 text-muted-foreground text-sm backdrop-blur-sm transition-all hover:border-primary hover:text-foreground"
                       >
-                        Create your own free page on
+                        Crie sua própria página gratuita no
                         <span className="font-semibold text-foreground">
                           OpenBio
                         </span>

@@ -16,11 +16,11 @@ export function DashboardTabs({
       <TabsList>
         <TabsTrigger value="pages" className="gap-x-1.5">
           <LayoutGrid className="h-3.5 w-3.5" />
-          Pages
+          Páginas
         </TabsTrigger>
         <TabsTrigger value="settings" className="gap-x-1.5">
           <Settings className="h-3.5 w-3.5" />
-          Settings
+          Configurações
         </TabsTrigger>
       </TabsList>
 

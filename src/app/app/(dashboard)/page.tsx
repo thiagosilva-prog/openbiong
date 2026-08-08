@@ -21,9 +21,9 @@ export default async function Page() {
   return (
     <div className="flex w-full flex-col gap-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-cal text-3xl">Dashboard</h1>
+        <h1 className="font-cal text-3xl">Painel</h1>
         <Link href="/claim-link">
-          <GradientButton>Create new</GradientButton>
+          <GradientButton>Criar novo</GradientButton>
         </Link>
       </div>
 

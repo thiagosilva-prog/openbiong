@@ -103,7 +103,7 @@ export default function ActionBar() {
     <>
       <div className="-translate-x-1/2 container fixed bottom-6 left-1/2 z-50 mx-auto md:bottom-10">
         <div className="mx-auto flex w-max items-center gap-x-2 rounded-xl border border-border/50 bg-background/90 px-2 py-2 shadow-lg backdrop-blur-sm">
-          <NextLink href="/app" className={btnClass} title="Back to dashboard">
+          <NextLink href="/app" className={btnClass} title="Voltar ao painel">
             <ArrowLeft size={14} />
           </NextLink>
 
@@ -112,7 +112,7 @@ export default function ActionBar() {
           <button
             type="button"
             className={btnClass}
-            title="Undo (Ctrl+Z)"
+            title="Desfazer (Ctrl+Z)"
             disabled={!canUndo}
             onClick={undo}
           >
@@ -121,7 +121,7 @@ export default function ActionBar() {
           <button
             type="button"
             className={btnClass}
-            title="Redo (Ctrl+Shift+Z)"
+            title="Refazer (Ctrl+Shift+Z)"
             disabled={!canRedo}
             onClick={redo}
           >
@@ -135,7 +135,7 @@ export default function ActionBar() {
               <button
                 type="button"
                 className={btnClass}
-                title="Add card"
+                title="Adicionar cartão"
                 data-tour="add-card"
               >
                 <Plus size={14} />
@@ -165,7 +165,7 @@ export default function ActionBar() {
                 }
               >
                 <Type size={14} className="shrink-0" />
-                Note
+                Nota
               </button>
               <button
                 type="button"
@@ -179,7 +179,7 @@ export default function ActionBar() {
                 }
               >
                 <ImagePlus size={14} className="shrink-0" />
-                Image
+                Imagem
               </button>
               <button
                 type="button"
@@ -194,7 +194,7 @@ export default function ActionBar() {
                 }
               >
                 <MapPin size={14} className="shrink-0" />
-                Map
+                Mapa
               </button>
               <button
                 type="button"
@@ -221,7 +221,7 @@ export default function ActionBar() {
                 }
               >
                 <Mail size={14} className="shrink-0" />
-                Email Collect
+                Coleta de E-mail
               </button>
               <button
                 type="button"
@@ -236,7 +236,7 @@ export default function ActionBar() {
                 }
               >
                 <Timer size={14} className="shrink-0" />
-                Countdown
+                Contagem Regressiva
               </button>
               <button
                 type="button"
@@ -251,7 +251,7 @@ export default function ActionBar() {
                 }
               >
                 <CloudSun size={14} className="shrink-0" />
-                Weather
+                Clima
               </button>
               <button
                 type="button"
@@ -279,7 +279,7 @@ export default function ActionBar() {
                 }
               >
                 <Calendar size={14} className="shrink-0" />
-                Booking
+                Agendamento
               </button>
               <button
                 type="button"
@@ -293,7 +293,7 @@ export default function ActionBar() {
                 }
               >
                 <Music size={14} className="shrink-0" />
-                Music
+                Música
               </button>
               {!profileLink?.bento.some((b) => b.type === 'views') && (
                 <button
@@ -307,7 +307,7 @@ export default function ActionBar() {
                   }
                 >
                   <Eye size={14} className="shrink-0" />
-                  Profile Views
+                  Visualizações do Perfil
                 </button>
               )}
             </PopoverContent>
@@ -334,8 +334,8 @@ export default function ActionBar() {
             className={btnClass}
             title={
               profileLink?.isPublic
-                ? 'Listed on Explore (click to hide)'
-                : 'Hidden from Explore (click to show)'
+                ? 'Listado no Explorar (clique para ocultar)'
+                : 'Oculto do Explorar (clique para mostrar)'
             }
             onClick={() => {
               if (!profileLink) {
@@ -407,7 +407,7 @@ export default function ActionBar() {
             <button
               type="button"
               className={`${btnClass} text-violet-500`}
-              title="AI Profile Builder"
+              title="Criador de Perfil com IA"
             >
               <Sparkles size={14} />
             </button>

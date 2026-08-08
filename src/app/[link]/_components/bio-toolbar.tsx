@@ -78,7 +78,7 @@ export default function BioToolbar({
         size="sm"
         className={btnClass}
         onClick={() => {
-          const url = window.prompt('Enter URL:');
+          const url = window.prompt('Digite a URL:');
           if (url) {
             editor.chain().focus().setLink({ href: url }).run();
           }
@@ -99,7 +99,9 @@ export default function BioToolbar({
         size="sm"
         className={btnClass}
         onClick={() => {
-          const color = window.prompt('Enter color hex (e.g. #ff0000):');
+          const color = window.prompt(
+            'Digite o código da cor em hex (ex: #ff0000):'
+          );
           if (color) {
             editor.chain().focus().setColor(color).run();
           }

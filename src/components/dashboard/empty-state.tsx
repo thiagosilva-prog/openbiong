@@ -8,12 +8,12 @@ export function EmptyState() {
       <div className="mb-4 rounded-full bg-muted p-4">
         <Sparkles className="h-8 w-8 text-foreground" />
       </div>
-      <h3 className="font-cal text-xl">No pages yet</h3>
+      <h3 className="font-cal text-xl">Nenhuma página ainda</h3>
       <p className="mt-1 text-muted-foreground text-sm">
-        Create your first link-in-bio page
+        Crie sua primeira página link-in-bio
       </p>
       <Link href="/claim-link" className="mt-6">
-        <GradientButton>Create your page</GradientButton>
+        <GradientButton>Criar sua página</GradientButton>
       </Link>
     </div>
   );

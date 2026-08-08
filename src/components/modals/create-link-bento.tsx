@@ -166,7 +166,7 @@ export default function CreateLinkBentoModal({
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="font-cal text-xl">Add Link</DialogTitle>
+          <DialogTitle className="font-cal text-xl">Adicionar Link</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-5">
@@ -198,7 +198,7 @@ export default function CreateLinkBentoModal({
           {selectedPreset === null && (
             <div className="flex items-center gap-2 text-muted-foreground text-xs">
               <div className="h-px flex-1 bg-border" />
-              <span>or paste any URL</span>
+              <span>ou cole qualquer URL</span>
               <div className="h-px flex-1 bg-border" />
             </div>
           )}
@@ -232,14 +232,14 @@ export default function CreateLinkBentoModal({
                 className="rounded-xl px-6"
                 onClick={() => setOpen(false)}
               >
-                Cancel
+                Cancelar
               </Button>
               <Button
                 type="submit"
                 disabled={!input || isPending}
                 className="rounded-xl px-6"
               >
-                {isPending ? 'Adding...' : 'Add link'}
+                {isPending ? 'Adicionando...' : 'Adicionar link'}
               </Button>
             </div>
           </form>

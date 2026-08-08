@@ -57,27 +57,27 @@ const WEATHER_EMOJI: Record<string, string> = {
 };
 
 const WEATHER_DESC: Record<string, string> = {
-  '0': 'Clear sky',
-  '1': 'Mostly clear',
-  '2': 'Partly cloudy',
-  '3': 'Overcast',
-  '45': 'Foggy',
-  '48': 'Rime fog',
-  '51': 'Light drizzle',
-  '53': 'Drizzle',
-  '55': 'Heavy drizzle',
-  '61': 'Light rain',
-  '63': 'Rain',
-  '65': 'Heavy rain',
-  '71': 'Light snow',
-  '73': 'Snow',
-  '75': 'Heavy snow',
-  '80': 'Light showers',
-  '81': 'Showers',
-  '82': 'Heavy showers',
-  '95': 'Thunderstorm',
-  '96': 'Thunderstorm with hail',
-  '99': 'Severe thunderstorm',
+  '0': 'Céu limpo',
+  '1': 'Predominantemente limpo',
+  '2': 'Parcialmente nublado',
+  '3': 'Encoberto',
+  '45': 'Neblina',
+  '48': 'Neblina com geada',
+  '51': 'Garoa fraca',
+  '53': 'Garoa',
+  '55': 'Garoa forte',
+  '61': 'Chuva fraca',
+  '63': 'Chuva',
+  '65': 'Chuva forte',
+  '71': 'Neve fraca',
+  '73': 'Neve',
+  '75': 'Neve forte',
+  '80': 'Pancadas fracas',
+  '81': 'Pancadas de chuva',
+  '82': 'Pancadas fortes',
+  '95': 'Tempestade',
+  '96': 'Tempestade com granizo',
+  '99': 'Tempestade severa',
 };
 
 function useWeather(lat: number, lng: number) {
@@ -101,7 +101,7 @@ function useWeather(lat: number, lng: number) {
         setWeather({
           temp: Math.round(data.current.temperature_2m),
           feelsLike: Math.round(data.current.apparent_temperature),
-          description: WEATHER_DESC[code] ?? 'Unknown',
+          description: WEATHER_DESC[code] ?? 'Desconhecido',
           icon: WEATHER_EMOJI[code] ?? '🌡️',
           humidity: data.current.relative_humidity_2m,
           windSpeed: Math.round(data.current.wind_speed_10m),
@@ -196,7 +196,7 @@ function WideWeather({
         <div>
           <span className="font-cal text-4xl">{weather.temp}°C</span>
           <p className="text-muted-foreground text-xs">
-            Feels like {weather.feelsLike}°
+            Sensação de {weather.feelsLike}°
           </p>
         </div>
       </div>
@@ -233,8 +233,8 @@ function WeatherContent({
       <div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-2xl bg-muted/30">
         <span className="text-2xl">🌤️</span>
         <p className="text-muted-foreground text-xs">
-          {editable && 'Set location'}
-          {!editable && !weather && 'Loading...'}
+          {editable && 'Definir localização'}
+          {!editable && !weather && 'Carregando...'}
         </p>
       </div>
     );
@@ -270,8 +270,8 @@ export default function WeatherCard({
   const handleUseMyLocation = useCallback(() => {
     if (!navigator.geolocation) {
       toast({
-        title: 'Geolocation not supported',
-        description: 'Your browser does not support geolocation.',
+        title: 'Geolocalização não suportada',
+        description: 'Seu navegador não suporta geolocalização.',
       });
       return;
     }
@@ -282,20 +282,20 @@ export default function WeatherCard({
         setLongitude(String(position.coords.longitude));
         setLocating(false);
         toast({
-          title: 'Location updated',
-          description: 'Coordinates have been filled in.',
+          title: 'Localização atualizada',
+          description: 'As coordenadas foram preenchidas.',
         });
       },
       (err) => {
         setLocating(false);
         const msgs: Record<number, string> = {
-          1: 'Permission denied. Go to browser settings to allow location for this site.',
-          2: 'Position unavailable. Try again or enter coordinates manually.',
-          3: 'Request timed out. Try again.',
+          1: 'Permissão negada. Acesse as configurações do navegador para permitir a localização deste site.',
+          2: 'Posição indisponível. Tente novamente ou insira as coordenadas manualmente.',
+          3: 'A solicitação expirou. Tente novamente.',
         };
         toast({
-          title: 'Could not get location',
-          description: msgs[err.code] ?? 'Unknown error.',
+          title: 'Não foi possível obter a localização',
+          description: msgs[err.code] ?? 'Erro desconhecido.',
         });
       },
       { enableHighAccuracy: false, timeout: 10000 }
@@ -384,7 +384,7 @@ export default function WeatherCard({
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="font-cal text-xl">Edit Weather</DialogTitle>
+            <DialogTitle className="font-cal text-xl">Editar Clima</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Button
@@ -395,7 +395,7 @@ export default function WeatherCard({
               onClick={handleUseMyLocation}
             >
               <Locate className="mr-2 h-4 w-4" />
-              {locating ? 'Getting location...' : 'Use my location'}
+              {locating ? 'Obtendo localização...' : 'Usar minha localização'}
             </Button>
 
             <div className="grid grid-cols-2 gap-3">
@@ -427,11 +427,11 @@ export default function WeatherCard({
 
             <div className="space-y-2">
               <Label htmlFor="w-name" className="font-medium text-sm">
-                Location Name (optional)
+                Nome do Local (opcional)
               </Label>
               <Input
                 id="w-name"
-                placeholder="Auto-detected from coordinates"
+                placeholder="Detectado automaticamente pelas coordenadas"
                 value={locationName}
                 onChange={(e) => setLocationName(e.target.value)}
                 className="rounded-xl"
@@ -443,7 +443,7 @@ export default function WeatherCard({
               disabled={isPending}
               className="w-full rounded-xl"
             >
-              {isPending ? 'Saving...' : 'Save'}
+              {isPending ? 'Salvando...' : 'Salvar'}
             </Button>
           </div>
         </DialogContent>

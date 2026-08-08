@@ -195,7 +195,7 @@ export const getTopReferrers = async (linkId: string, days: number) => {
 
   const rows = await db
     .select({
-      referrer: sql<string>`coalesce(${linkView.referrer}, 'Direct')`.as(
+      referrer: sql<string>`coalesce(${linkView.referrer}, 'Direto')`.as(
         'referrer'
       ),
       count: sql<number>`count(*)`.as('count'),
@@ -207,7 +207,7 @@ export const getTopReferrers = async (linkId: string, days: number) => {
         gte(linkView.createdAt, sql`now() - ${`${days} days`}::interval`)
       )
     )
-    .groupBy(sql`coalesce(${linkView.referrer}, 'Direct')`)
+    .groupBy(sql`coalesce(${linkView.referrer}, 'Direto')`)
     .orderBy(desc(sql`count(*)`))
     .limit(10);
 

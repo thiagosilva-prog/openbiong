@@ -52,7 +52,7 @@ function formatDate(dateStr: string): string {
   if (hours < 24) {
     return `${Math.floor(hours)}h`;
   }
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return d.toLocaleDateString('pt-BR', { month: 'short', day: 'numeric' });
 }
 
 function CompactTweet({
@@ -285,8 +285,8 @@ export default function TwitterCard({
         <div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-2xl bg-muted/30">
           <FaXTwitter className="h-8 w-8 text-muted-foreground" />
           <p className="text-muted-foreground text-xs">
-            {editable && 'Add a tweet'}
-            {!editable && hasTweet && 'Loading...'}
+            {editable && 'Adicionar um tweet'}
+            {!editable && hasTweet && 'Carregando...'}
           </p>
         </div>
       );
@@ -350,13 +350,13 @@ export default function TwitterCard({
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="font-cal text-xl">
-              Edit Tweet Card
+              Editar Cartão de Tweet
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="tweet-url" className="font-medium text-sm">
-                Tweet URL
+                URL do Tweet
               </Label>
               <Input
                 id="tweet-url"
@@ -366,7 +366,7 @@ export default function TwitterCard({
                 className="rounded-xl"
               />
               <p className="text-[11px] text-muted-foreground">
-                Paste a link from twitter.com or x.com
+                Cole um link de twitter.com ou x.com
               </p>
             </div>
 
@@ -374,7 +374,7 @@ export default function TwitterCard({
               <div className="flex items-center gap-2 rounded-xl border border-border p-3">
                 <FaXTwitter size={16} className="text-muted-foreground" />
                 <span className="font-cal text-sm">
-                  Tweet ID: {extractTweetId(tweetUrl)}
+                  ID do Tweet: {extractTweetId(tweetUrl)}
                 </span>
               </div>
             )}
@@ -384,7 +384,7 @@ export default function TwitterCard({
               className="w-full rounded-xl"
               disabled={!extractTweetId(tweetUrl) || isPending}
             >
-              {isPending ? 'Saving...' : 'Save'}
+              {isPending ? 'Salvando...' : 'Salvar'}
             </Button>
           </div>
         </DialogContent>

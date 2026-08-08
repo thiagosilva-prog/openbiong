@@ -89,7 +89,7 @@ function useCountdown(targetDate: string, repeat = 'none') {
 function CountdownDisplay({ timeLeft }: { timeLeft: TimeLeft }) {
   if (timeLeft.days > 7) {
     return (
-      <p className="font-cal text-2xl tabular-nums">in {timeLeft.days} days</p>
+      <p className="font-cal text-2xl tabular-nums">em {timeLeft.days} dias</p>
     );
   }
   if (timeLeft.days >= 1) {
@@ -150,7 +150,7 @@ function CompactCountdown({
         <p className="font-cal text-xs leading-tight">{bento.title}</p>
       )}
       {timeLeft.isPast ? (
-        <p className="font-cal text-primary text-sm">Time&apos;s up!</p>
+        <p className="font-cal text-primary text-sm">Acabou o tempo!</p>
       ) : (
         <CountdownDisplay timeLeft={timeLeft} />
       )}
@@ -172,16 +172,16 @@ function WideCountdown({
         {bento.title && <p className="font-cal text-sm">{bento.title}</p>}
       </div>
       {timeLeft.isPast ? (
-        <p className="font-cal text-lg text-primary">Time's up!</p>
+        <p className="font-cal text-lg text-primary">Acabou o tempo!</p>
       ) : (
         <div className="flex items-center gap-4">
-          <TimeUnit value={timeLeft.days} label="days" />
+          <TimeUnit value={timeLeft.days} label="dias" />
           <div className="font-cal text-2xl text-muted-foreground/40">:</div>
           <TimeUnit value={timeLeft.hours} label="hrs" />
           <div className="font-cal text-2xl text-muted-foreground/40">:</div>
           <TimeUnit value={timeLeft.minutes} label="min" />
           <div className="font-cal text-2xl text-muted-foreground/40">:</div>
-          <TimeUnit value={timeLeft.seconds} label="sec" />
+          <TimeUnit value={timeLeft.seconds} label="seg" />
         </div>
       )}
     </div>
@@ -200,14 +200,14 @@ function LargeCountdown({
       {bento.emoji && <span className="text-4xl">{bento.emoji}</span>}
       {bento.title && <p className="font-cal text-lg">{bento.title}</p>}
       {timeLeft.isPast ? (
-        <p className="font-cal text-2xl text-primary">Time's up!</p>
+        <p className="font-cal text-2xl text-primary">Acabou o tempo!</p>
       ) : (
         <div className="grid grid-cols-4 gap-4">
           {[
-            { value: timeLeft.days, label: 'Days' },
-            { value: timeLeft.hours, label: 'Hours' },
-            { value: timeLeft.minutes, label: 'Minutes' },
-            { value: timeLeft.seconds, label: 'Seconds' },
+            { value: timeLeft.days, label: 'Dias' },
+            { value: timeLeft.hours, label: 'Horas' },
+            { value: timeLeft.minutes, label: 'Minutos' },
+            { value: timeLeft.seconds, label: 'Segundos' },
           ].map((item) => (
             <div
               key={item.label}
@@ -258,8 +258,8 @@ export default function CountdownCard({
   const handleSave = async () => {
     if (!targetDate) {
       toast({
-        title: 'Missing date',
-        description: 'Please select a target date.',
+        title: 'Data ausente',
+        description: 'Selecione uma data de destino.',
       });
       return;
     }
@@ -268,8 +268,8 @@ export default function CountdownCard({
     const parsed = new Date(targetDate);
     if (Number.isNaN(parsed.getTime())) {
       toast({
-        title: 'Invalid date',
-        description: 'Please enter a valid date.',
+        title: 'Data inválida',
+        description: 'Insira uma data válida.',
       });
       return;
     }
@@ -307,7 +307,10 @@ export default function CountdownCard({
       },
     });
     setEditOpen(false);
-    toast({ title: 'Saved', description: 'Countdown updated.' });
+    toast({
+      title: 'Salvo',
+      description: 'Contagem regressiva atualizada.',
+    });
   };
 
   const mdSize = bento.size.md ?? '2x2';
@@ -318,7 +321,7 @@ export default function CountdownCard({
         <div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-2xl bg-muted/30">
           <span className="text-2xl">⏰</span>
           <p className="text-muted-foreground text-xs">
-            {editable ? 'Set date' : ''}
+            {editable ? 'Definir data' : ''}
           </p>
         </div>
       );
@@ -369,7 +372,7 @@ export default function CountdownCard({
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="font-cal text-xl">
-              Edit Countdown
+              Editar Contagem Regressiva
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
@@ -389,11 +392,11 @@ export default function CountdownCard({
 
             <div className="space-y-2">
               <Label htmlFor="cd-title" className="font-medium text-sm">
-                Title
+                Título
               </Label>
               <Input
                 id="cd-title"
-                placeholder="My Birthday"
+                placeholder="Meu Aniversário"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="rounded-xl"
@@ -402,7 +405,7 @@ export default function CountdownCard({
 
             <div className="space-y-2">
               <Label htmlFor="cd-date" className="font-medium text-sm">
-                Target Date
+                Data de Destino
               </Label>
               <Input
                 id="cd-date"
@@ -419,7 +422,7 @@ export default function CountdownCard({
 
             <div className="space-y-2">
               <Label htmlFor="cd-repeat" className="font-medium text-sm">
-                Repeat
+                Repetir
               </Label>
               <select
                 id="cd-repeat"
@@ -427,10 +430,10 @@ export default function CountdownCard({
                 onChange={(e) => setRepeat(e.target.value as typeof repeat)}
                 className="h-9 w-full rounded-xl border border-border bg-card px-3 text-sm"
               >
-                <option value="none">Don&apos;t repeat</option>
-                <option value="weekly">Every week</option>
-                <option value="monthly">Every month</option>
-                <option value="yearly">Every year</option>
+                <option value="none">Não repetir</option>
+                <option value="weekly">Toda semana</option>
+                <option value="monthly">Todo mês</option>
+                <option value="yearly">Todo ano</option>
               </select>
             </div>
 
@@ -439,7 +442,7 @@ export default function CountdownCard({
               disabled={isPending}
               className="w-full rounded-xl"
             >
-              {isPending ? 'Saving...' : 'Save'}
+              {isPending ? 'Salvando...' : 'Salvar'}
             </Button>
           </div>
         </DialogContent>

@@ -33,21 +33,21 @@ import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
 
 const viewsConfig = {
   views: {
-    label: 'Views',
+    label: 'Visualizações',
     color: 'var(--chart-1)',
   },
 } satisfies ChartConfig;
 
 const clicksConfig = {
   clicks: {
-    label: 'Clicks',
+    label: 'Cliques',
     color: 'var(--chart-2)',
   },
 } satisfies ChartConfig;
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return d.toLocaleDateString('pt-BR', { month: 'short', day: 'numeric' });
 }
 
 type UtmBreakdownRow = {
@@ -61,8 +61,8 @@ function CampaignsCard({ data }: { data: UtmBreakdownRow[] | undefined }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-cal">Campaigns</CardTitle>
-        <CardDescription>Traffic by UTM campaign</CardDescription>
+        <CardTitle className="font-cal">Campanhas</CardTitle>
+        <CardDescription>Tráfego por campanha UTM</CardDescription>
       </CardHeader>
       <CardContent>
         {data?.length ? (
@@ -99,7 +99,7 @@ function CampaignsCard({ data }: { data: UtmBreakdownRow[] | undefined }) {
           </div>
         ) : (
           <p className="py-6 text-center text-muted-foreground text-sm">
-            No campaign data yet
+            Ainda não há dados de campanha
           </p>
         )}
       </CardContent>
@@ -117,8 +117,10 @@ function AdTrafficSourceCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-cal">Ad Traffic Source</CardTitle>
-        <CardDescription>Visitors from ad clicks</CardDescription>
+        <CardTitle className="font-cal">
+          Origem do Tráfego de Anúncios
+        </CardTitle>
+        <CardDescription>Visitantes de cliques em anúncios</CardDescription>
       </CardHeader>
       <CardContent>
         {data?.length ? (
@@ -149,7 +151,7 @@ function AdTrafficSourceCard({
           </div>
         ) : (
           <p className="py-6 text-center text-muted-foreground text-sm">
-            No ad traffic data yet
+            Ainda não há dados de tráfego de anúncios
           </p>
         )}
       </CardContent>
@@ -170,8 +172,8 @@ function TopLocationsCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-cal">Top Locations</CardTitle>
-        <CardDescription>City-level visitor locations</CardDescription>
+        <CardTitle className="font-cal">Principais Localizações</CardTitle>
+        <CardDescription>Localização dos visitantes por cidade</CardDescription>
       </CardHeader>
       <CardContent>
         {data?.length ? (
@@ -188,7 +190,9 @@ function TopLocationsCard({
                   <div className="flex items-center justify-between text-sm">
                     <span className="flex items-center gap-1.5 truncate">
                       <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                      <span className="truncate">{label || 'Unknown'}</span>
+                      <span className="truncate">
+                        {label || 'Desconhecido'}
+                      </span>
                     </span>
                     <span className="shrink-0 text-muted-foreground">
                       {l.count}
@@ -206,7 +210,7 @@ function TopLocationsCard({
           </div>
         ) : (
           <p className="py-6 text-center text-muted-foreground text-sm">
-            No location data yet
+            Ainda não há dados de localização
           </p>
         )}
       </CardContent>
@@ -268,7 +272,9 @@ export default function Analytics({ linkId }: { linkId: string }) {
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="font-medium text-sm">Total Views</CardTitle>
+            <CardTitle className="font-medium text-sm">
+              Total de Visualizações
+            </CardTitle>
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -277,7 +283,9 @@ export default function Analytics({ linkId }: { linkId: string }) {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="font-medium text-sm">Unique Views</CardTitle>
+            <CardTitle className="font-medium text-sm">
+              Visualizações Únicas
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -286,7 +294,9 @@ export default function Analytics({ linkId }: { linkId: string }) {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="font-medium text-sm">Total Clicks</CardTitle>
+            <CardTitle className="font-medium text-sm">
+              Total de Cliques
+            </CardTitle>
             <MousePointerClick className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -295,7 +305,9 @@ export default function Analytics({ linkId }: { linkId: string }) {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="font-medium text-sm">Click Rate</CardTitle>
+            <CardTitle className="font-medium text-sm">
+              Taxa de Cliques
+            </CardTitle>
             <MousePointerClick className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -311,13 +323,15 @@ export default function Analytics({ linkId }: { linkId: string }) {
       {/* Views over time */}
       <Card>
         <CardHeader>
-          <CardTitle className="font-cal">Views</CardTitle>
-          <CardDescription>Profile views over the last 30 days</CardDescription>
+          <CardTitle className="font-cal">Visualizações</CardTitle>
+          <CardDescription>
+            Visualizações do perfil nos últimos 30 dias
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {viewsData.length === 0 ? (
             <p className="py-12 text-center text-muted-foreground text-sm">
-              No view data yet
+              Ainda não há dados de visualização
             </p>
           ) : (
             <ChartContainer config={viewsConfig} className="h-[250px] w-full">
@@ -347,13 +361,15 @@ export default function Analytics({ linkId }: { linkId: string }) {
       {/* Clicks over time */}
       <Card>
         <CardHeader>
-          <CardTitle className="font-cal">Clicks</CardTitle>
-          <CardDescription>Card clicks over the last 30 days</CardDescription>
+          <CardTitle className="font-cal">Cliques</CardTitle>
+          <CardDescription>
+            Cliques nos cards nos últimos 30 dias
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {clicksData.length === 0 ? (
             <p className="py-12 text-center text-muted-foreground text-sm">
-              No click data yet
+              Ainda não há dados de cliques
             </p>
           ) : (
             <ChartContainer config={clicksConfig} className="h-[250px] w-full">
@@ -385,16 +401,16 @@ export default function Analytics({ linkId }: { linkId: string }) {
         {/* Top clicked cards */}
         <Card>
           <CardHeader>
-            <CardTitle className="font-cal">Top Links</CardTitle>
+            <CardTitle className="font-cal">Principais Links</CardTitle>
             <CardDescription>
-              Most clicked cards, with click-through rate (% of visitors who
-              clicked)
+              Cards mais clicados, com taxa de cliques (% de visitantes que
+              clicaram)
             </CardDescription>
           </CardHeader>
           <CardContent>
             {data.cardStats.length === 0 ? (
               <p className="py-6 text-center text-muted-foreground text-sm">
-                No click data yet
+                Ainda não há dados de cliques
               </p>
             ) : (
               <div className="max-h-[420px] space-y-3 overflow-y-auto pr-1">
@@ -433,13 +449,15 @@ export default function Analytics({ linkId }: { linkId: string }) {
         {/* Top referrers */}
         <Card>
           <CardHeader>
-            <CardTitle className="font-cal">Top Referrers</CardTitle>
-            <CardDescription>Where your visitors come from</CardDescription>
+            <CardTitle className="font-cal">
+              Principais Referenciadores
+            </CardTitle>
+            <CardDescription>De onde vêm seus visitantes</CardDescription>
           </CardHeader>
           <CardContent>
             {data.topReferrers.length === 0 ? (
               <p className="py-6 text-center text-muted-foreground text-sm">
-                No referrer data yet
+                Ainda não há dados de referenciadores
               </p>
             ) : (
               <div className="space-y-3">
@@ -448,7 +466,7 @@ export default function Analytics({ linkId }: { linkId: string }) {
                   const pct = Math.round((r.count / maxCount) * 100);
                   let label = r.referrer;
                   try {
-                    if (label !== 'Direct') {
+                    if (label !== 'Direto') {
                       label = new URL(label).hostname.replace('www.', '');
                     }
                   } catch {
@@ -482,8 +500,10 @@ export default function Analytics({ linkId }: { linkId: string }) {
         {/* Devices */}
         <Card>
           <CardHeader>
-            <CardTitle className="font-cal">Devices</CardTitle>
-            <CardDescription>Visitor device types</CardDescription>
+            <CardTitle className="font-cal">Dispositivos</CardTitle>
+            <CardDescription>
+              Tipos de dispositivo dos visitantes
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {data.deviceBreakdown?.devices?.length ? (
@@ -514,7 +534,7 @@ export default function Analytics({ linkId }: { linkId: string }) {
               </div>
             ) : (
               <p className="py-6 text-center text-muted-foreground text-sm">
-                No device data yet
+                Ainda não há dados de dispositivos
               </p>
             )}
           </CardContent>
@@ -523,8 +543,8 @@ export default function Analytics({ linkId }: { linkId: string }) {
         {/* Browsers */}
         <Card>
           <CardHeader>
-            <CardTitle className="font-cal">Browsers</CardTitle>
-            <CardDescription>Visitor browsers</CardDescription>
+            <CardTitle className="font-cal">Navegadores</CardTitle>
+            <CardDescription>Navegadores dos visitantes</CardDescription>
           </CardHeader>
           <CardContent>
             {data.deviceBreakdown?.browsers?.length ? (
@@ -552,7 +572,7 @@ export default function Analytics({ linkId }: { linkId: string }) {
               </div>
             ) : (
               <p className="py-6 text-center text-muted-foreground text-sm">
-                No browser data yet
+                Ainda não há dados de navegadores
               </p>
             )}
           </CardContent>
@@ -561,8 +581,8 @@ export default function Analytics({ linkId }: { linkId: string }) {
         {/* Countries */}
         <Card>
           <CardHeader>
-            <CardTitle className="font-cal">Countries</CardTitle>
-            <CardDescription>Visitor locations</CardDescription>
+            <CardTitle className="font-cal">Países</CardTitle>
+            <CardDescription>Localização dos visitantes</CardDescription>
           </CardHeader>
           <CardContent>
             {data.geoBreakdown?.length ? (
@@ -593,7 +613,7 @@ export default function Analytics({ linkId }: { linkId: string }) {
               </div>
             ) : (
               <p className="py-6 text-center text-muted-foreground text-sm">
-                No location data yet
+                Ainda não há dados de localização
               </p>
             )}
           </CardContent>
@@ -611,10 +631,10 @@ export default function Analytics({ linkId }: { linkId: string }) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div>
-            <CardTitle className="font-cal">Subscribers</CardTitle>
+            <CardTitle className="font-cal">Inscritos</CardTitle>
             <CardDescription>
-              {subscribers?.length ?? 0} email{' '}
-              {subscribers?.length === 1 ? 'subscriber' : 'subscribers'}
+              {subscribers?.length ?? 0} e-mail{' '}
+              {subscribers?.length === 1 ? 'inscrito' : 'inscritos'}
             </CardDescription>
           </div>
           {subscribers && subscribers.length > 0 && (
@@ -628,15 +648,15 @@ export default function Analytics({ linkId }: { linkId: string }) {
                     .writeText(emails)
                     .then(() => {
                       toast({
-                        title: 'Copied!',
-                        description: `${subscribers.length} emails copied to clipboard.`,
+                        title: 'Copiado!',
+                        description: `${subscribers.length} e-mails copiados para a área de transferência.`,
                       });
                     })
                     .catch(() => undefined);
                 }}
               >
                 <Copy className="mr-1.5 h-3.5 w-3.5" />
-                Copy all
+                Copiar tudo
               </Button>
               <Button
                 variant="outline"
@@ -660,7 +680,7 @@ export default function Analytics({ linkId }: { linkId: string }) {
                 }}
               >
                 <Download className="mr-1.5 h-3.5 w-3.5" />
-                Export CSV
+                Exportar CSV
               </Button>
             </div>
           )}
@@ -684,7 +704,8 @@ export default function Analytics({ linkId }: { linkId: string }) {
             <div className="flex flex-col items-center gap-2 py-8 text-center">
               <Mail className="h-8 w-8 text-muted-foreground/40" />
               <p className="text-muted-foreground text-sm">
-                No subscribers yet. Add an Email Collect card to your profile.
+                Ainda não há inscritos. Adicione um card de Coleta de E-mail ao
+                seu perfil.
               </p>
             </div>
           )}

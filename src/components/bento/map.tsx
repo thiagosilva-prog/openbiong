@@ -222,7 +222,9 @@ function EmptyMapState({ editable }: { editable?: boolean }) {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-[#1a1a2e]">
       <MapPin className="h-8 w-8 text-white/20" />
-      <p className="text-white/40 text-xs">{editable ? 'Set location' : ''}</p>
+      <p className="text-white/40 text-xs">
+        {editable ? 'Definir localização' : ''}
+      </p>
     </div>
   );
 }
@@ -252,8 +254,8 @@ export default function MapCard({
   const handleUseMyLocation = useCallback(() => {
     if (!navigator.geolocation) {
       toast({
-        title: 'Geolocation not supported',
-        description: 'Your browser does not support geolocation.',
+        title: 'Geolocalização não suportada',
+        description: 'Seu navegador não suporta geolocalização.',
       });
       return;
     }
@@ -264,20 +266,20 @@ export default function MapCard({
         setLongitude(String(position.coords.longitude));
         setLocating(false);
         toast({
-          title: 'Location updated',
-          description: 'Coordinates have been filled in.',
+          title: 'Localização atualizada',
+          description: 'As coordenadas foram preenchidas.',
         });
       },
       (err) => {
         setLocating(false);
         const msgs: Record<number, string> = {
-          1: 'Permission denied. Go to browser settings to allow location for this site.',
-          2: 'Position unavailable. Try again or enter coordinates manually.',
-          3: 'Request timed out. Try again.',
+          1: 'Permissão negada. Acesse as configurações do navegador para permitir a localização deste site.',
+          2: 'Posição indisponível. Tente novamente ou insira as coordenadas manualmente.',
+          3: 'A solicitação expirou. Tente novamente.',
         };
         toast({
-          title: 'Could not get location',
-          description: msgs[err.code] ?? 'Unknown error.',
+          title: 'Não foi possível obter a localização',
+          description: msgs[err.code] ?? 'Erro desconhecido.',
         });
       },
       { enableHighAccuracy: false, timeout: 10000 }
@@ -368,7 +370,7 @@ export default function MapCard({
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="font-cal text-xl">Edit Map</DialogTitle>
+            <DialogTitle className="font-cal text-xl">Editar Mapa</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {latitude &&
@@ -394,7 +396,7 @@ export default function MapCard({
               onClick={handleUseMyLocation}
             >
               <Locate className="mr-2 h-4 w-4" />
-              {locating ? 'Getting location...' : 'Use my location'}
+              {locating ? 'Obtendo localização...' : 'Usar minha localização'}
             </Button>
 
             <div className="grid grid-cols-2 gap-3">
@@ -426,11 +428,11 @@ export default function MapCard({
 
             <div className="space-y-2">
               <Label htmlFor="map-label" className="font-medium text-sm">
-                Label
+                Nome do local
               </Label>
               <Input
                 id="map-label"
-                placeholder="New York City"
+                placeholder="São Paulo"
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
                 className="rounded-xl"
@@ -442,7 +444,7 @@ export default function MapCard({
               disabled={isPending}
               className="w-full rounded-xl"
             >
-              {isPending ? 'Saving...' : 'Save'}
+              {isPending ? 'Salvando...' : 'Salvar'}
             </Button>
           </div>
         </DialogContent>

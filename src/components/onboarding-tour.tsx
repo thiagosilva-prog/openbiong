@@ -16,36 +16,37 @@ type TourStep = {
 const TOUR_STEPS: TourStep[] = [
   {
     target: '[data-tour="profile-header"]',
-    title: 'Your profile',
+    title: 'Seu perfil',
     description:
-      'Click on your name or bio to edit them directly. Tap your avatar to change it.',
+      'Clique no seu nome ou na bio para editá-los diretamente. Toque no seu avatar para alterá-lo.',
     placement: 'bottom',
   },
   {
     target: '[data-tour="preview-toggle"]',
-    title: 'Preview mode',
+    title: 'Modo de pré-visualização',
     description:
-      'See how visitors see your page. Toggle back to edit mode to make changes.',
+      'Veja como os visitantes veem sua página. Volte ao modo de edição para fazer alterações.',
     placement: 'bottom',
   },
   {
     target: '[data-tour="viewport-switcher"]',
-    title: 'Device preview',
-    description: 'Preview your profile on desktop or in a phone frame.',
+    title: 'Pré-visualização por dispositivo',
+    description:
+      'Veja como seu perfil fica no desktop ou em uma moldura de celular.',
     placement: 'bottom',
   },
   {
     target: '[data-tour="add-card"]',
-    title: 'Add cards',
+    title: 'Adicione cartões',
     description:
-      'Build your page with links, images, maps, GitHub stats, countdowns, weather, email collection, and more.',
+      'Monte sua página com links, imagens, mapas, estatísticas do GitHub, contagens regressivas, previsão do tempo, captação de e-mails e muito mais.',
     placement: 'top',
   },
   {
     target: '[data-tour="theme-settings"]',
-    title: 'Make it yours',
+    title: 'Deixe do seu jeito',
     description:
-      'Pick a theme, toggle dark mode, set accent colors, and customize your footer text.',
+      'Escolha um tema, ative o modo escuro, defina cores de destaque e personalize o texto do rodapé.',
     placement: 'top',
   },
 ];
@@ -166,7 +167,7 @@ function Tooltip({
           className="h-7 rounded-lg px-3 text-xs"
           onClick={onNext}
         >
-          {isLast ? 'Done' : 'Next'}
+          {isLast ? 'Concluir' : 'Próximo'}
         </Button>
       </div>
     </div>
