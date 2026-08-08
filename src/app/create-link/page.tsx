@@ -21,7 +21,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { ComponentType } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BiLogoTelegram } from 'react-icons/bi';
 import { BsDiscord, BsTwitterX } from 'react-icons/bs';
 import {
@@ -108,6 +108,25 @@ function normalizeUrl(raw: string) {
   return PROTOCOL_RE.test(trimmed) ? trimmed : `https://${trimmed}`;
 }
 
+function isCompleteUrl(url: string) {
+  try {
+    return new URL(url).hostname.includes('.');
+  } catch {
+    return false;
+  }
+}
+
+function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+
+  return debounced;
+}
+
 function buildWhatsAppUrl(number: string, message: string) {
   const digits = number.replace(NON_DIGIT_RE, '');
   if (!digits) {
@@ -164,6 +183,110 @@ function CustomLinkPreviewCard({
       <div className="mt-2">
         <p className="truncate font-medium text-[10px]">{title || hostname}</p>
       </div>
+    </div>
+  );
+}
+
+function LinkMetadataPreview({ url }: { url: string }) {
+  const { data: metadata, isFetching } =
+    api.profileLink.getMetadataOfURL.useQuery(
+      { url },
+      { enabled: !!url, staleTime: 5 * 60_000 }
+    );
+
+  if (isFetching) {
+    return (
+      <div className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted/30 px-3 py-2 text-muted-foreground text-xs">
+        <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+        Carregando pré-visualização...
+      </div>
+    );
+  }
+
+  if (!(metadata?.title || metadata?.description)) {
+    return null;
+  }
+
+  let hostname = url;
+  try {
+    hostname = new URL(url).hostname.replace('www.', '');
+  } catch {
+    // keep raw url as fallback label
+  }
+
+  return (
+    <div className="flex gap-3 overflow-hidden rounded-lg border border-border/40 bg-muted/30 p-2.5">
+      {metadata.image && (
+        <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-muted">
+          <Image
+            src={metadata.image}
+            alt={metadata.title}
+            fill
+            className="object-cover"
+          />
+        </div>
+      )}
+      <div className="min-w-0 flex-1 space-y-0.5">
+        <p className="truncate font-medium text-xs">{metadata.title}</p>
+        {metadata.description && (
+          <p className="line-clamp-2 text-[11px] text-muted-foreground leading-snug">
+            {metadata.description}
+          </p>
+        )}
+        <p className="truncate text-[10px] text-muted-foreground/70 uppercase">
+          {hostname}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function CustomLinkRow({
+  item,
+  index,
+  showRemove,
+  onChange,
+  onRemove,
+}: {
+  item: { url: string; title: string };
+  index: number;
+  showRemove: boolean;
+  onChange: (index: number, field: 'url' | 'title', value: string) => void;
+  onRemove: (index: number) => void;
+}) {
+  const normalizedUrl = normalizeUrl(item.url);
+  const debouncedUrl = useDebouncedValue(normalizedUrl, 600);
+  const previewUrl = isCompleteUrl(debouncedUrl) ? debouncedUrl : '';
+
+  return (
+    <div className="space-y-1.5 rounded-xl border border-border/50 bg-background px-3 py-2.5">
+      <div className="flex items-center gap-2.5">
+        <input
+          className="flex-1 bg-transparent text-muted-foreground text-xs outline-none placeholder:text-muted-foreground/70"
+          placeholder="Título (opcional)"
+          value={item.title}
+          onChange={(e) => onChange(index, 'title', e.target.value)}
+        />
+      </div>
+      <div className="flex items-center gap-2.5">
+        <Link2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <input
+          className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          placeholder="https://exemplo.com"
+          value={item.url}
+          onChange={(e) => onChange(index, 'url', e.target.value)}
+        />
+        {showRemove && (
+          <button
+            type="button"
+            onClick={() => onRemove(index)}
+            className="shrink-0 text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+      {previewUrl && <LinkMetadataPreview url={previewUrl} />}
     </div>
   );
 }
@@ -411,41 +534,14 @@ export default function Page() {
               <Label className="font-medium text-sm">Links</Label>
               <div className="space-y-2">
                 {customLinks.map((item, index) => (
-                  <div
+                  <CustomLinkRow
                     key={index}
-                    className="space-y-1.5 rounded-xl border border-border/50 bg-background px-3 py-2.5"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <Link2 className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      <input
-                        className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                        placeholder="https://exemplo.com"
-                        value={item.url}
-                        onChange={(e) =>
-                          handleCustomLinkChange(index, 'url', e.target.value)
-                        }
-                      />
-                      {customLinks.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeCustomLink(index)}
-                          className="shrink-0 text-muted-foreground hover:text-foreground"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2.5 pl-[26px]">
-                      <input
-                        className="flex-1 bg-transparent text-muted-foreground text-xs outline-none placeholder:text-muted-foreground/70"
-                        placeholder="Título (opcional)"
-                        value={item.title}
-                        onChange={(e) =>
-                          handleCustomLinkChange(index, 'title', e.target.value)
-                        }
-                      />
-                    </div>
-                  </div>
+                    item={item}
+                    index={index}
+                    showRemove={customLinks.length > 1}
+                    onChange={handleCustomLinkChange}
+                    onRemove={removeCustomLink}
+                  />
                 ))}
               </div>
               <Button

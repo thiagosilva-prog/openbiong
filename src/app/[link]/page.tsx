@@ -170,7 +170,10 @@ export default async function Page({ params, searchParams }: Props) {
         darkMode={profileLink.darkMode}
         accentColor={profileLink.accentColor}
       >
-        <PreviewProvider initialPreview={!editRequested}>
+        <PreviewProvider
+          initialPreview={!editRequested}
+          editSession={editRequested}
+        >
           <Suspense>
             <BentoHistoryProvider>
               <ViewportContainer>

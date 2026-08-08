@@ -17,14 +17,7 @@ import {
   useEditor,
 } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import {
-  Eye,
-  Monitor,
-  PenLine,
-  QrCode,
-  Share2,
-  Smartphone,
-} from 'lucide-react';
+import { Eye, Monitor, PenLine, QrCode, Smartphone } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import ProfileLinkAvatar from './avatar';
@@ -113,46 +106,6 @@ function OwnerControls({
           </LinkQRModal>
         </>
       )}
-    </div>
-  );
-}
-
-function VisitorControls({ profileLink }: { profileLink: ProfileLinkData }) {
-  return (
-    <div className="flex items-center gap-2">
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => {
-          const url = `https://openbio.app/${profileLink.link}`;
-          if (navigator.share) {
-            navigator
-              .share({
-                title: profileLink.name ?? 'Perfil OpenBio',
-                url,
-              })
-              .catch(() => undefined);
-          } else {
-            navigator.clipboard
-              .writeText(url)
-              .then(() => {
-                toast({
-                  title: 'Copiado para a área de transferência!',
-                  description: 'Link do perfil copiado!',
-                });
-              })
-              .catch(() => undefined);
-          }
-        }}
-      >
-        <Share2 className="mr-1.5 h-4 w-4" />
-        Compartilhar
-      </Button>
-      <LinkQRModal>
-        <Button size="icon" variant="outline" className="h-9 w-9">
-          <QrCode className="h-4 w-4" />
-        </Button>
-      </LinkQRModal>
     </div>
   );
 }
@@ -272,7 +225,7 @@ export default function ProfileLinkHeader({
     return () => clearTimeout(timer);
   }, [name, bio, updateProfileLink, profileLink]);
 
-  const { preview } = usePreview();
+  const { preview, editSession } = usePreview();
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -298,25 +251,26 @@ export default function ProfileLinkHeader({
   const contentAlign =
     (profileLink.contentAlign as 'left' | 'center' | 'right' | undefined) ??
     'left';
+  const showControls = profileLink.isOwner && editSession;
 
   return (
     <div className="flex flex-col gap-y-4" data-tour="profile-header">
-      <div
-        className={cn(
-          'flex items-start',
-          contentAlign === 'left' ? 'justify-between' : 'justify-end'
-        )}
-      >
-        {contentAlign === 'left' && (
-          <ProfileLinkAvatar profileLink={profileLink} />
-        )}
+      {(contentAlign === 'left' || showControls) && (
+        <div
+          className={cn(
+            'flex items-start',
+            contentAlign === 'left' ? 'justify-between' : 'justify-end'
+          )}
+        >
+          {contentAlign === 'left' && (
+            <ProfileLinkAvatar profileLink={profileLink} />
+          )}
 
-        {profileLink.isOwner ? (
-          <OwnerControls profileLink={profileLink} saving={saving} />
-        ) : (
-          <VisitorControls profileLink={profileLink} />
-        )}
-      </div>
+          {showControls && (
+            <OwnerControls profileLink={profileLink} saving={saving} />
+          )}
+        </div>
+      )}
 
       <ProfileIdentity
         profileLink={profileLink}
