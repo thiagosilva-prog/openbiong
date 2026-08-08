@@ -63,6 +63,7 @@ import {
   GetLinkViewsSchema,
   LinkAvailableSchema,
   TrackClickSchema,
+  UpdateBasicInfoSchema,
   UpdateLinkBentoSchema,
   UpdateLinkSchema,
 } from '../schemas';
@@ -350,6 +351,43 @@ export const profileLinkRouter = createTRPCRouter({
       return updateProfileLink(input);
     }),
 
+  updateBasicInfo: protectedProcedure
+    .input(UpdateBasicInfoSchema)
+    .mutation(async ({ input, ctx }) => {
+      const user = await ctx.db.query.user.findFirst({
+        where: (u, { eq }) => eq(u.id, ctx.user.id),
+        columns: { id: true },
+      });
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      await canModifyProfileLink({
+        userId: user.id,
+        linkId: input.id,
+      });
+
+      const existing = await getProfileLinkById(input.id);
+      if (!existing) {
+        throw new Error('Link not found');
+      }
+
+      const claimed = new Set(input.claimedBentoIds);
+      const preserved = existing.bento.filter((b) => !claimed.has(b.id));
+      const newLinkItems = buildLinkBentoItems(
+        input,
+        getStartPositionAfter(preserved)
+      );
+
+      return updateProfileLink({
+        id: input.id,
+        name: input.name,
+        bio: input.bio,
+        bento: [...preserved, ...newLinkItems],
+      });
+    }),
+
   delete: protectedProcedure
     .input(DeleteLinkSchema)
     .mutation(async ({ input, ctx }) => {
@@ -497,9 +535,29 @@ const SOCIAL_KEYS = [
   'twitch',
 ] as const;
 
-function generateInitialBento(input: z.infer<typeof CreateLinkSchema>) {
+type StartPosition = {
+  sm: { x: number; y: number };
+  md: { x: number; y: number };
+};
+
+type SocialLinksInput = {
+  twitter?: string;
+  github?: string;
+  linkedin?: string;
+  instagram?: string;
+  telegram?: string;
+  discord?: string;
+  youtube?: string;
+  twitch?: string;
+  customLinks?: { url: string; title?: string }[];
+};
+
+function buildLinkBentoItems(
+  input: SocialLinksInput,
+  startPosition: StartPosition
+) {
   const bento: LinkBento[] = [];
-  let position = { sm: { x: 0, y: 0 }, md: { x: 0, y: 0 } };
+  let position = startPosition;
 
   for (const key of SOCIAL_KEYS) {
     const value = input[key];
@@ -534,6 +592,30 @@ function generateInitialBento(input: z.infer<typeof CreateLinkSchema>) {
   }
 
   return bento;
+}
+
+function generateInitialBento(input: z.infer<typeof CreateLinkSchema>) {
+  return buildLinkBentoItems(input, {
+    sm: { x: 0, y: 0 },
+    md: { x: 0, y: 0 },
+  });
+}
+
+function getStartPositionAfter(
+  preserved: {
+    position: {
+      sm?: { x: number; y: number };
+      md?: { x: number; y: number };
+    };
+  }[]
+): StartPosition {
+  let smY = 0;
+  let mdY = 0;
+  for (const item of preserved) {
+    smY = Math.max(smY, (item.position?.sm?.y ?? 0) + 1);
+    mdY = Math.max(mdY, (item.position?.md?.y ?? 0) + 1);
+  }
+  return { sm: { x: 0, y: smY }, md: { x: 0, y: mdY } };
 }
 
 function getSocialUrl(key: string, value: string) {

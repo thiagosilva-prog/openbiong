@@ -156,6 +156,7 @@ export const updateProfileLink = async (data: {
   customDomain?: string | null;
   customFooter?: string | null;
   isPublic?: boolean;
+  bento?: z.infer<typeof BentoSchema>[];
 }) => {
   const result = await db
     .update(link)

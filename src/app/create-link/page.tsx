@@ -21,7 +21,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { ComponentType } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BiLogoTelegram } from 'react-icons/bi';
 import { BsDiscord, BsTwitterX } from 'react-icons/bs';
 import {
@@ -136,6 +136,177 @@ function buildWhatsAppUrl(number: string, message: string) {
     ? `?text=${encodeURIComponent(message.trim())}`
     : '';
   return `https://wa.me/${digits}${query}`;
+}
+
+const SOCIAL_HOSTNAME_TESTS: {
+  key: string;
+  test: (hostname: string) => boolean;
+}[] = [
+  {
+    key: 'twitter',
+    test: (h) => h.includes('x.com') || h.includes('twitter.com'),
+  },
+  { key: 'github', test: (h) => h.includes('github.com') },
+  { key: 'instagram', test: (h) => h.includes('instagram.com') },
+  { key: 'linkedin', test: (h) => h.includes('linkedin.com') },
+  { key: 'youtube', test: (h) => h.includes('youtube.com') },
+  { key: 'discord', test: (h) => h.includes('discord.com') },
+  {
+    key: 'telegram',
+    test: (h) => h.includes('t.me') || h.includes('telegram.com'),
+  },
+  { key: 'twitch', test: (h) => h.includes('twitch.tv') },
+];
+
+const LEADING_SLASHES_RE = /^\/+/;
+const TRAILING_SLASHES_RE = /\/+$/;
+const LEADING_IN_SEGMENT_RE = /^in\//;
+const LEADING_AT_RE = /^@/;
+
+function detectSocialKey(hostname: string): string | null {
+  return SOCIAL_HOSTNAME_TESTS.find((s) => s.test(hostname))?.key ?? null;
+}
+
+function extractSocialHandle(pathname: string, key: string): string {
+  const trimmed = pathname
+    .replace(LEADING_SLASHES_RE, '')
+    .replace(TRAILING_SLASHES_RE, '');
+  if (key === 'linkedin') {
+    return trimmed.replace(LEADING_IN_SEGMENT_RE, '');
+  }
+  if (key === 'youtube') {
+    return trimmed.replace(LEADING_AT_RE, '');
+  }
+  return trimmed;
+}
+
+function isWhatsAppHostname(hostname: string) {
+  return hostname.includes('wa.me') || hostname.includes('whatsapp.com');
+}
+
+const HTML_TAG_RE = /<[^>]*>/g;
+
+function buildSocialsPayload(socials: Record<string, string>) {
+  return {
+    twitter: socials.twitter || undefined,
+    github: socials.github || undefined,
+    linkedin: socials.linkedin || undefined,
+    instagram: socials.instagram || undefined,
+    telegram: socials.telegram || undefined,
+    discord: socials.discord || undefined,
+    youtube: socials.youtube || undefined,
+    twitch: socials.twitch || undefined,
+  };
+}
+
+function getSubmitLabel(loading: boolean, isEditMode: boolean) {
+  if (loading) {
+    return isEditMode ? 'Salvando...' : 'Criando...';
+  }
+  return isEditMode ? 'Salvar alterações' : 'Criar página';
+}
+
+type BentoLinkItem = {
+  id: string;
+  type: string;
+  href?: string;
+  title?: string;
+};
+
+function decomposeBento(bento: BentoLinkItem[]) {
+  const socials: Record<string, string> = {};
+  let whatsapp = '';
+  let whatsappMessage = '';
+  const customLinks: { url: string; title: string }[] = [];
+  const claimedBentoIds: string[] = [];
+
+  for (const item of bento) {
+    if (item.type !== 'link' || !item.href) {
+      continue;
+    }
+
+    let url: URL;
+    try {
+      url = new URL(item.href);
+    } catch {
+      continue;
+    }
+
+    const socialKey = detectSocialKey(url.hostname);
+    if (socialKey) {
+      socials[socialKey] = extractSocialHandle(url.pathname, socialKey);
+      claimedBentoIds.push(item.id);
+      continue;
+    }
+
+    if (isWhatsAppHostname(url.hostname)) {
+      whatsapp = url.pathname.replace(LEADING_SLASHES_RE, '');
+      whatsappMessage = url.searchParams.get('text') ?? '';
+      claimedBentoIds.push(item.id);
+      continue;
+    }
+
+    customLinks.push({ url: item.href, title: item.title ?? '' });
+    claimedBentoIds.push(item.id);
+  }
+
+  return { socials, whatsapp, whatsappMessage, customLinks, claimedBentoIds };
+}
+
+function useProfileForm(link: string) {
+  const [name, setName] = useState('');
+  const [bio, setBio] = useState('');
+  const [socials, setSocials] = useState<Record<string, string>>({});
+  const [customLinks, setCustomLinks] = useState<
+    { url: string; title: string }[]
+  >([{ url: '', title: '' }]);
+  const [whatsapp, setWhatsapp] = useState('');
+  const [whatsappMessage, setWhatsappMessage] = useState('');
+  const [claimedBentoIds, setClaimedBentoIds] = useState<string[]>([]);
+  const hasPrefilled = useRef(false);
+
+  const { data: existingProfile, isLoading: isLoadingExisting } =
+    api.profileLink.getByLink.useQuery({ link }, { enabled: !!link });
+  const isEditMode = !!existingProfile?.isOwner;
+
+  useEffect(() => {
+    if (!existingProfile?.isOwner || hasPrefilled.current) {
+      return;
+    }
+    hasPrefilled.current = true;
+
+    const decomposed = decomposeBento(existingProfile.bento);
+    setName(existingProfile.name ?? '');
+    setBio((existingProfile.bio ?? '').replace(HTML_TAG_RE, ''));
+    setSocials(decomposed.socials);
+    setWhatsapp(decomposed.whatsapp);
+    setWhatsappMessage(decomposed.whatsappMessage);
+    setCustomLinks(
+      decomposed.customLinks.length > 0
+        ? decomposed.customLinks
+        : [{ url: '', title: '' }]
+    );
+    setClaimedBentoIds(decomposed.claimedBentoIds);
+  }, [existingProfile]);
+
+  return {
+    name,
+    setName,
+    bio,
+    setBio,
+    socials,
+    setSocials,
+    customLinks,
+    setCustomLinks,
+    whatsapp,
+    setWhatsapp,
+    whatsappMessage,
+    setWhatsappMessage,
+    claimedBentoIds,
+    existingProfile,
+    isEditMode,
+    isLoadingExisting,
+  };
 }
 
 function WhatsAppPreviewCard() {
@@ -334,17 +505,30 @@ export default function Page() {
   const link = searchParams.get('link') ?? '';
   const router = useRouter();
 
-  const [name, setName] = useState('');
-  const [bio, setBio] = useState('');
-  const [socials, setSocials] = useState<Record<string, string>>({});
-  const [customLinks, setCustomLinks] = useState<
-    { url: string; title: string }[]
-  >([{ url: '', title: '' }]);
-  const [whatsapp, setWhatsapp] = useState('');
-  const [whatsappMessage, setWhatsappMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const {
+    name,
+    setName,
+    bio,
+    setBio,
+    socials,
+    setSocials,
+    customLinks,
+    setCustomLinks,
+    whatsapp,
+    setWhatsapp,
+    whatsappMessage,
+    setWhatsappMessage,
+    claimedBentoIds,
+    existingProfile,
+    isEditMode,
+    isLoadingExisting,
+  } = useProfileForm(link);
+
   const { mutateAsync: createLink } = api.profileLink.create.useMutation();
+  const { mutateAsync: updateBasicInfo } =
+    api.profileLink.updateBasicInfo.useMutation();
 
   const handleSocialChange = (key: string, value: string) => {
     setSocials((prev) => ({ ...prev, [key]: value }));
@@ -388,20 +572,26 @@ export default function Page() {
     }
     setLoading(true);
     try {
-      await createLink({
-        link,
-        name: name || undefined,
-        bio: bio || undefined,
-        twitter: socials.twitter || undefined,
-        github: socials.github || undefined,
-        linkedin: socials.linkedin || undefined,
-        instagram: socials.instagram || undefined,
-        telegram: socials.telegram || undefined,
-        discord: socials.discord || undefined,
-        youtube: socials.youtube || undefined,
-        twitch: socials.twitch || undefined,
-        customLinks: customLinksPayload,
-      });
+      const socialsPayload = buildSocialsPayload(socials);
+
+      if (isEditMode && existingProfile) {
+        await updateBasicInfo({
+          id: existingProfile.id,
+          name: name || undefined,
+          bio: bio || undefined,
+          ...socialsPayload,
+          customLinks: customLinksPayload,
+          claimedBentoIds,
+        });
+      } else {
+        await createLink({
+          link,
+          name: name || undefined,
+          bio: bio || undefined,
+          ...socialsPayload,
+          customLinks: customLinksPayload,
+        });
+      }
       router.push(`/${link}?edit=1`);
     } catch {
       setLoading(false);
@@ -419,7 +609,9 @@ export default function Page() {
                 <Image src={OpenBioLogo} alt="OpenBio" width={36} height={36} />
               </Link>
               <div>
-                <h1 className="font-cal text-xl">Configure sua página</h1>
+                <h1 className="font-cal text-xl">
+                  {isEditMode ? 'Editar página' : 'Configure sua página'}
+                </h1>
                 <p className="text-muted-foreground text-xs">
                   openbio.app/{link}
                 </p>
@@ -558,26 +750,30 @@ export default function Page() {
 
             {/* Actions */}
             <div className="flex items-center justify-between pt-2">
-              <Link
-                href="/claim-link"
-                className="text-muted-foreground text-sm hover:text-foreground"
-              >
-                ← Voltar
-              </Link>
+              <div className="flex items-center gap-4">
+                <Link
+                  href={isEditMode ? '/app' : '/claim-link'}
+                  className="text-muted-foreground text-sm hover:text-foreground"
+                >
+                  ← Voltar
+                </Link>
+                {isEditMode && (
+                  <Link
+                    href={`/${link}?edit=1`}
+                    className="text-muted-foreground text-sm hover:text-foreground"
+                  >
+                    Editor avançado →
+                  </Link>
+                )}
+              </div>
               <GradientButton
                 onClick={() => {
                   handlePublish().catch(console.error);
                 }}
-                disabled={loading || !name}
+                disabled={loading || !name || isLoadingExisting}
               >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Criando...
-                  </>
-                ) : (
-                  'Criar página'
-                )}
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {getSubmitLabel(loading, isEditMode)}
               </GradientButton>
             </div>
           </div>

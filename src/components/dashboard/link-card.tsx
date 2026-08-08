@@ -7,6 +7,7 @@ import {
   BarChart3,
   ExternalLink,
   Eye,
+  LayoutGrid,
   Pencil,
   QrCode,
   Trash2,
@@ -49,7 +50,7 @@ export function DashboardLinkCard({ link }: { link: ProfileLink }) {
         </div>
       </div>
       <div className="flex justify-around border-border/50 border-t px-2 py-1">
-        <Link href={`/${link.link}?edit=1`}>
+        <Link href={`/create-link?link=${link.link}`}>
           <Button
             variant="ghost"
             size="icon"
@@ -57,6 +58,16 @@ export function DashboardLinkCard({ link }: { link: ProfileLink }) {
             title="Editar"
           >
             <Pencil className="h-4 w-4" />
+          </Button>
+        </Link>
+        <Link href={`/${link.link}?edit=1`}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            title="Editor avançado"
+          >
+            <LayoutGrid className="h-4 w-4" />
           </Button>
         </Link>
         <Link href={`/${link.link}`} target="_blank">

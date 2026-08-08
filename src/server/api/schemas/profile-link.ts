@@ -20,10 +20,7 @@ export const LinkAvailableSchema = z.object({
   link: z.string().toLowerCase(),
 });
 
-export const CreateLinkSchema = z.object({
-  link: ValidLinkSchema,
-  name: z.string().optional(),
-  bio: z.string().optional(),
+const socialLinksFields = {
   twitter: z.string().optional(),
   github: z.string().optional(),
   linkedin: z.string().optional(),
@@ -41,6 +38,21 @@ export const CreateLinkSchema = z.object({
     )
     .max(10)
     .optional(),
+};
+
+export const CreateLinkSchema = z.object({
+  link: ValidLinkSchema,
+  name: z.string().optional(),
+  bio: z.string().optional(),
+  ...socialLinksFields,
+});
+
+export const UpdateBasicInfoSchema = z.object({
+  id: z.string(),
+  name: z.string().optional(),
+  bio: z.string().optional(),
+  claimedBentoIds: z.array(z.string()),
+  ...socialLinksFields,
 });
 
 export const GetByLinkSchema = z.object({
