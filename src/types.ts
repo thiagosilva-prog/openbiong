@@ -27,6 +27,7 @@ export const LinkBentoSchema = z.object({
   type: z.literal('link'),
 
   href: z.string().url(),
+  title: z.string().optional(),
   clicks: z.number().int().min(0).default(0),
 
   size: SizeSchema,

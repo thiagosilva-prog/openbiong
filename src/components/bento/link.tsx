@@ -15,7 +15,7 @@ import type { getMetadata } from '@/lib/metadata';
 import { cn } from '@/lib/utils';
 import { api } from '@/trpc/react';
 import type { LinkBentoSchema } from '@/types';
-import { Pencil } from 'lucide-react';
+import { Link2, Pencil } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
@@ -151,21 +151,32 @@ function getPlatform(url: string): PlatformInfo | null | undefined {
   return null;
 }
 
+function FaviconImage({ hostname, alt }: { hostname: string; alt: string }) {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) {
+    return <Link2 className="h-4 w-4 text-muted-foreground" />;
+  }
+
+  return (
+    <Image
+      src={`https://www.google.com/s2/favicons?domain=${hostname}&sz=128`}
+      alt={alt}
+      width={24}
+      height={24}
+      className="rounded-md"
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
 function getIcon(url: string, metadata?: Metadata) {
   const platform = getPlatform(url);
   if (platform) {
     return platform.icon;
   }
   const hostname = new URL(url).hostname;
-  return (
-    <Image
-      src={`https://www.google.com/s2/favicons?domain=${hostname}&sz=128`}
-      alt={metadata?.title ?? url}
-      width={24}
-      height={24}
-      className="rounded-md"
-    />
-  );
+  return <FaviconImage hostname={hostname} alt={metadata?.title ?? hostname} />;
 }
 
 function getLargeIcon(url: string) {
@@ -372,7 +383,7 @@ function IconBadge({
   return (
     <div
       className={cn(
-        'inline-flex shrink-0 items-center justify-center border border-border/60 bg-muted/50',
+        'inline-flex shrink-0 items-center justify-center overflow-hidden border border-border/60 bg-muted/50',
         size === 'sm' && 'h-8 w-8 rounded-lg',
         size === 'md' && 'h-10 w-10 rounded-xl',
         size === 'lg' && 'h-14 w-14 rounded-2xl'
@@ -447,7 +458,7 @@ function BannerLayout({
       listMode={listMode}
     >
       <IconBadge href={bento.href ?? ''} metadata={metadata} size="sm" />
-      <span className="truncate font-cal text-sm">{title}</span>
+      <span className="min-w-0 truncate font-cal text-sm">{title}</span>
       <div className="ml-auto shrink-0">{getAction(bento.href ?? '')}</div>
     </CardWrapper>
   );
@@ -553,6 +564,7 @@ export default function LinkCard({
   const params = useParams<{ link: string }>();
   const [editOpen, setEditOpen] = useState(false);
   const [href, setHref] = useState(bento.href ?? '');
+  const [customTitle, setCustomTitle] = useState(bento.title ?? '');
 
   const queryClient = api.useContext();
   const { mutateAsync: updateBento, isPending } =
@@ -564,19 +576,22 @@ export default function LinkCard({
   );
 
   const handleSave = async () => {
+    const nextTitle = customTitle.trim() || undefined;
     queryClient.profileLink.getByLink.setData({ link: params.link }, (old) => {
       if (!old) {
         return old;
       }
       return {
         ...old,
-        bento: old.bento.map((b) => (b.id === bento.id ? { ...b, href } : b)),
+        bento: old.bento.map((b) =>
+          b.id === bento.id ? { ...b, href, title: nextTitle } : b
+        ),
       };
     });
 
     await updateBento({
       link: params.link,
-      bento: { ...bento, href },
+      bento: { ...bento, href, title: nextTitle },
     });
     setEditOpen(false);
   };
@@ -585,7 +600,7 @@ export default function LinkCard({
     return null;
   }
 
-  const title = getTitle(bento.href, metadata ?? undefined);
+  const title = bento.title || getTitle(bento.href, metadata ?? undefined);
   const description = getDescription(bento.href, metadata ?? undefined);
   const smSize = bento.size.sm ?? '2x2';
   const mdSize = bento.size.md ?? '2x2';
@@ -642,6 +657,21 @@ export default function LinkCard({
                 onChange={(e) => setHref(e.target.value)}
                 className="rounded-xl"
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="link-title" className="font-medium text-sm">
+                Título
+              </Label>
+              <Input
+                id="link-title"
+                placeholder="Ex: Nosso site, WhatsApp..."
+                value={customTitle}
+                onChange={(e) => setCustomTitle(e.target.value)}
+                className="rounded-xl"
+              />
+              <p className="text-muted-foreground text-xs">
+                Deixe em branco para usar o título detectado automaticamente.
+              </p>
             </div>
             <Button
               onClick={handleSave}
