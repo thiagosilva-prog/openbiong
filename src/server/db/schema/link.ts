@@ -37,6 +37,9 @@ export const link = pgTable('link', {
 
   customFooter: text('custom_footer'),
 
+  metaPixelId: text('meta_pixel_id'),
+  metaCapiToken: text('meta_capi_token'),
+
   isPublic: boolean('is_public').default(true).notNull(),
 
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),

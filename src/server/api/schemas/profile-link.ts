@@ -57,6 +57,7 @@ export const UpdateBasicInfoSchema = z.object({
 
 export const GetByLinkSchema = z.object({
   link: z.string(),
+  editSession: z.boolean().optional(),
   ...attributionFields,
 });
 
@@ -64,6 +65,8 @@ export const TrackClickSchema = z.object({
   linkId: z.string(),
   bentoId: z.string(),
   href: z.string(),
+  eventId: z.string().optional(),
+  editSession: z.boolean().optional(),
   ...attributionFields,
 });
 
@@ -81,6 +84,12 @@ export const UpdateLinkSchema = z.object({
   contentAlign: z.enum(['left', 'center', 'right']).optional(),
   customDomain: z.string().nullable().optional(),
   customFooter: z.string().nullable().optional(),
+  metaPixelId: z
+    .string()
+    .regex(/^\d+$/, 'O ID do Pixel deve conter apenas números.')
+    .nullable()
+    .optional(),
+  metaCapiToken: z.string().nullable().optional(),
   isPublic: z.boolean().optional(),
 });
 

@@ -1,3 +1,4 @@
+import { getCookie, isWhatsAppUrl, sendMetaCapiEvent } from '@/lib/meta-capi';
 import { getMetadata } from '@/lib/metadata';
 import { fetchMusicMetadata } from '@/lib/music';
 import { fetchLimit, generalLimit, subscribeLimit } from '@/lib/ratelimit';
@@ -117,7 +118,10 @@ export const profileLinkRouter = createTRPCRouter({
 
     const profileLinks = await getProfileLinksOfUser(user.id);
 
-    return profileLinks;
+    return profileLinks.map(({ metaCapiToken, ...rest }) => ({
+      ...rest,
+      hasMetaCapiToken: !!metaCapiToken,
+    }));
   }),
 
   getByLink: publicProcedure
@@ -141,11 +145,13 @@ export const profileLinkRouter = createTRPCRouter({
       const region =
         ctx.req.headers.get('x-vercel-ip-country-region') ?? undefined;
       const city = decodeCityHeader(ctx.req.headers.get('x-vercel-ip-city'));
+      const userAgent = ctx.req.headers.get('user-agent') ?? 'Unknown';
+      const metaPixelEventId = crypto.randomUUID();
 
-      after(() =>
-        recordLinkView(profileLink.id, {
+      after(async () => {
+        await recordLinkView(profileLink.id, {
           ip: ip ?? 'Unknown',
-          userAgent: ctx.req.headers.get('user-agent') ?? 'Unknown',
+          userAgent,
           referrer: ctx.req.headers.get('referer') ?? undefined,
           country,
           region,
@@ -158,12 +164,36 @@ export const profileLinkRouter = createTRPCRouter({
           fbclid: input.fbclid,
           gclid: input.gclid,
           ttclid: input.ttclid,
-        })
-      );
+        });
+
+        if (
+          !input.editSession &&
+          profileLink.metaPixelId &&
+          profileLink.metaCapiToken
+        ) {
+          const cookieHeader = ctx.req.headers.get('cookie');
+          await sendMetaCapiEvent({
+            pixelId: profileLink.metaPixelId,
+            accessToken: profileLink.metaCapiToken,
+            eventName: 'PageView',
+            eventId: metaPixelEventId,
+            eventSourceUrl: `https://openbio.app/${profileLink.link}`,
+            clientIp: ip ?? undefined,
+            userAgent,
+            fbc: getCookie(cookieHeader, '_fbc'),
+            fbp: getCookie(cookieHeader, '_fbp'),
+          });
+        }
+      });
+
+      const { metaCapiToken, ...publicProfileLink } = profileLink;
+      const isOwner = authedUserId === profileLink.userId;
 
       return {
-        ...profileLink,
-        isOwner: authedUserId === profileLink.userId,
+        ...publicProfileLink,
+        isOwner,
+        hasMetaCapiToken: isOwner ? !!metaCapiToken : undefined,
+        metaPixelEventId,
       };
     }),
 
@@ -186,12 +216,13 @@ export const profileLinkRouter = createTRPCRouter({
       const region =
         ctx.req.headers.get('x-vercel-ip-country-region') ?? undefined;
       const city = decodeCityHeader(ctx.req.headers.get('x-vercel-ip-city'));
+      const userAgent = ctx.req.headers.get('user-agent') ?? 'Unknown';
 
       await recordLinkClick(input.linkId, {
         bentoId: input.bentoId,
         href: input.href,
         ip: ip ?? 'Unknown',
-        userAgent: ctx.req.headers.get('user-agent') ?? 'Unknown',
+        userAgent,
         referrer: ctx.req.headers.get('referer') ?? undefined,
         country,
         region,
@@ -204,6 +235,30 @@ export const profileLinkRouter = createTRPCRouter({
         fbclid: input.fbclid,
         gclid: input.gclid,
         ttclid: input.ttclid,
+      });
+
+      after(async () => {
+        if (input.editSession) {
+          return;
+        }
+        const profile = await getProfileLinkById(input.linkId);
+        if (!(profile?.metaPixelId && profile.metaCapiToken)) {
+          return;
+        }
+
+        const cookieHeader = ctx.req.headers.get('cookie');
+        await sendMetaCapiEvent({
+          pixelId: profile.metaPixelId,
+          accessToken: profile.metaCapiToken,
+          eventName: isWhatsAppUrl(input.href) ? 'Contact' : 'BioLinkClick',
+          eventId: input.eventId,
+          eventSourceUrl: `https://openbio.app/${profile.link}`,
+          clientIp: ip ?? undefined,
+          userAgent,
+          fbc: getCookie(cookieHeader, '_fbc'),
+          fbp: getCookie(cookieHeader, '_fbp'),
+          customData: { link_url: input.href },
+        });
       });
     }),
 

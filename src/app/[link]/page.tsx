@@ -14,6 +14,7 @@ import ActionBar from './_components/action-bar';
 import Bento from './_components/bento';
 import { BentoHistoryProvider } from './_components/bento-history';
 import ProfileLinkHeader from './_components/header';
+import MetaPixel from './_components/meta-pixel';
 import { PreviewProvider } from './_components/preview-context';
 import ThemeWrapper from './_components/theme-wrapper';
 import ViewportContainer from './_components/viewport-container';
@@ -41,7 +42,8 @@ const getProfileLink = cache(
     utmContent?: string,
     fbclid?: string,
     gclid?: string,
-    ttclid?: string
+    ttclid?: string,
+    editSession?: boolean
   ) => {
     return api.profileLink.getByLink({
       link,
@@ -53,6 +55,7 @@ const getProfileLink = cache(
       fbclid,
       gclid,
       ttclid,
+      editSession,
     });
   }
 );
@@ -76,9 +79,11 @@ export async function generateMetadata({
   searchParams,
 }: Props): Promise<Metadata> {
   const { link } = await params;
+  const resolvedSearchParams = await searchParams;
   const attribution = extractAttributionParams(
-    toSearchParams(await searchParams)
+    toSearchParams(resolvedSearchParams)
   );
+  const editRequested = resolvedSearchParams.edit === '1';
 
   const profileLink = await getProfileLink(
     link,
@@ -89,7 +94,8 @@ export async function generateMetadata({
     attribution.utmContent,
     attribution.fbclid,
     attribution.gclid,
-    attribution.ttclid
+    attribution.ttclid,
+    editRequested
   );
 
   const title = profileLink?.name ?? defaultMetadata.title;
@@ -133,7 +139,8 @@ export default async function Page({ params, searchParams }: Props) {
     attribution.utmContent,
     attribution.fbclid,
     attribution.gclid,
-    attribution.ttclid
+    attribution.ttclid,
+    editRequested
   );
 
   if (!profileLink) {
@@ -165,6 +172,12 @@ export default async function Page({ params, searchParams }: Props) {
         // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD with server-only data from our DB
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      {!editRequested && profileLink.metaPixelId && (
+        <MetaPixel
+          pixelId={profileLink.metaPixelId}
+          eventId={profileLink.metaPixelEventId}
+        />
+      )}
       <ThemeWrapper
         theme={profileLink.theme}
         darkMode={profileLink.darkMode}

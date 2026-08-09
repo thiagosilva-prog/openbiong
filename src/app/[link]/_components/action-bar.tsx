@@ -3,6 +3,7 @@
 import ProfileBuilder from '@/components/ai/profile-builder';
 import CreateLinkBentoModal from '@/components/modals/create-link-bento';
 import CustomDomainModal from '@/components/modals/custom-domain';
+import MetaPixelSettingsModal from '@/components/modals/meta-pixel-settings';
 import ThemeSettingsModal from '@/components/modals/theme-settings';
 import {
   Popover,
@@ -21,6 +22,7 @@ import {
   Link,
   Mail,
   MapPin,
+  Megaphone,
   Music,
   Palette,
   Plus,
@@ -328,6 +330,12 @@ export default function ActionBar() {
               <Globe size={14} />
             </button>
           </CustomDomainModal>
+
+          <MetaPixelSettingsModal>
+            <button type="button" className={btnClass} title="Meta Pixel">
+              <Megaphone size={14} />
+            </button>
+          </MetaPixelSettingsModal>
 
           <button
             type="button"

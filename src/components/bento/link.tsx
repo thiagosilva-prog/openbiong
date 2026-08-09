@@ -1,5 +1,6 @@
 'use client';
 
+import { usePreview } from '@/app/[link]/_components/preview-context';
 import CardOverlay from '@/components/bento/overlay';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { extractAttributionParams } from '@/lib/attribution';
+import { isWhatsAppUrl } from '@/lib/meta-capi';
 import type { getMetadata } from '@/lib/metadata';
 import { cn } from '@/lib/utils';
 import { api } from '@/trpc/react';
@@ -339,6 +341,7 @@ function CardWrapper({
 }) {
   const { link: linkSlug } = useParams<{ link: string }>();
   const searchParams = useSearchParams();
+  const { editSession } = usePreview();
   const { data: profileLink } = api.profileLink.getByLink.useQuery(
     { link: linkSlug },
     { enabled: !editable }
@@ -347,12 +350,28 @@ function CardWrapper({
 
   const handleClick = () => {
     if (!editable && profileLink && bento.href) {
+      const eventId = crypto.randomUUID();
       trackClick({
         linkId: profileLink.id,
         bentoId: bento.id,
         href: bento.href,
+        eventId,
+        editSession,
         ...extractAttributionParams(searchParams),
       });
+
+      if (!editSession && typeof window !== 'undefined' && window.fbq) {
+        if (isWhatsAppUrl(bento.href)) {
+          window.fbq('track', 'Contact', {}, { eventID: eventId });
+        } else {
+          window.fbq(
+            'trackCustom',
+            'BioLinkClick',
+            { link_url: bento.href },
+            { eventID: eventId }
+          );
+        }
+      }
     }
   };
 
