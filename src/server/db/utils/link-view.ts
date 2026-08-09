@@ -147,6 +147,7 @@ export async function getDeviceBreakdown(linkId: string, days: number) {
     return cached as {
       devices: { device: string; count: number }[];
       browsers: { browser: string; count: number }[];
+      os: { os: string; count: number }[];
     };
   }
 
@@ -160,13 +161,16 @@ export async function getDeviceBreakdown(linkId: string, days: number) {
 
   const devices: Record<string, number> = {};
   const browsers: Record<string, number> = {};
+  const os: Record<string, number> = {};
 
   for (const row of rows) {
     const ua = UAParser(row.userAgent ?? undefined);
     const device = ua.device.type || 'desktop';
     const browser = ua.browser.name || 'Desconhecido';
+    const osName = ua.os.name || 'Desconhecido';
     devices[device] = (devices[device] ?? 0) + 1;
     browsers[browser] = (browsers[browser] ?? 0) + 1;
+    os[osName] = (os[osName] ?? 0) + 1;
   }
 
   const result = {
@@ -175,6 +179,9 @@ export async function getDeviceBreakdown(linkId: string, days: number) {
       .sort((a, b) => b.count - a.count),
     browsers: Object.entries(browsers)
       .map(([browser, count]) => ({ browser, count }))
+      .sort((a, b) => b.count - a.count),
+    os: Object.entries(os)
+      .map(([osName, count]) => ({ os: osName, count }))
       .sort((a, b) => b.count - a.count),
   };
 

@@ -18,6 +18,7 @@ import { toast } from '@/components/ui/use-toast';
 import { api } from '@/trpc/react';
 import {
   Copy,
+  Cpu,
   Download,
   Eye,
   Globe,
@@ -495,8 +496,8 @@ export default function Analytics({ linkId }: { linkId: string }) {
         </Card>
       </div>
 
-      {/* Devices, Browsers & Geography */}
-      <div className="grid gap-6 md:grid-cols-3">
+      {/* Devices, OS, Browsers & Geography */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {/* Devices */}
         <Card>
           <CardHeader>
@@ -535,6 +536,49 @@ export default function Analytics({ linkId }: { linkId: string }) {
             ) : (
               <p className="py-6 text-center text-muted-foreground text-sm">
                 Ainda não há dados de dispositivos
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Operating System */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-cal">Sistema Operacional</CardTitle>
+            <CardDescription>
+              Android, iOS, Windows, macOS, Linux...
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {data.deviceBreakdown?.os?.length ? (
+              <div className="space-y-3">
+                {data.deviceBreakdown.os.map((o) => {
+                  const maxCount = data.deviceBreakdown.os[0]?.count ?? 1;
+                  const pct = Math.round((o.count / maxCount) * 100);
+                  return (
+                    <div key={o.os} className="space-y-1">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="flex items-center gap-1.5 truncate">
+                          <Cpu className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                          {o.os}
+                        </span>
+                        <span className="shrink-0 text-muted-foreground">
+                          {o.count}
+                        </span>
+                      </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full rounded-full bg-chart-3 transition-all"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="py-6 text-center text-muted-foreground text-sm">
+                Ainda não há dados de sistema operacional
               </p>
             )}
           </CardContent>
