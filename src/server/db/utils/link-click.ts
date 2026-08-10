@@ -146,16 +146,19 @@ export const getCardStats = async (linkId: string, days: number) => {
   const cacheKey = `analytics:card-stats:${linkId}:${days}`;
   const cached =
     await safeCacheGet<
-      { bentoId: string; href: string; clicks: number; ctr: number }[]
+      { href: string; title?: string; clicks: number; ctr: number }[]
     >(cacheKey);
   if (cached) {
     return cached;
   }
 
-  const [rows, totalViews] = await Promise.all([
+  // Grouped by href alone, not (bentoId, href): a card's bentoId is
+  // regenerated every time its href/title is saved through the basic-info
+  // edit form (see updateBasicInfo), so grouping by bentoId would fragment
+  // one link's click history across every id it has ever had.
+  const [rows, totalViews, profileLink] = await Promise.all([
     db
       .select({
-        bentoId: linkClick.bentoId,
         href: linkClick.href,
         count: sql<number>`count(*)`.as('count'),
       })
@@ -166,17 +169,28 @@ export const getCardStats = async (linkId: string, days: number) => {
           gte(linkClick.createdAt, sql`now() - ${`${days} days`}::interval`)
         )
       )
-      .groupBy(linkClick.bentoId, linkClick.href)
+      .groupBy(linkClick.href)
       .orderBy(desc(sql`count(*)`))
       .limit(200),
     getTotalViewsInWindow(linkId, days),
+    db.query.link.findFirst({
+      where: (_link, { eq: eqOp }) => eqOp(_link.id, linkId),
+      columns: { bento: true },
+    }),
   ]);
+
+  const titleByHref = new Map<string, string>();
+  for (const b of profileLink?.bento ?? []) {
+    if (b.type === 'link' && b.href && b.title) {
+      titleByHref.set(b.href, b.title);
+    }
+  }
 
   const result = rows.map((r) => {
     const clicks = Number(r.count);
     return {
-      bentoId: r.bentoId,
       href: r.href,
+      title: titleByHref.get(r.href),
       clicks,
       ctr: totalViews > 0 ? clicks / totalViews : 0,
     };

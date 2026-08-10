@@ -418,21 +418,26 @@ export default function Analytics({ linkId }: { linkId: string }) {
                 {data.cardStats.map((c) => {
                   const maxCount = data.cardStats[0]?.clicks ?? 1;
                   const pct = Math.round((c.clicks / maxCount) * 100);
-                  let label: string;
+                  let urlLabel: string;
                   try {
                     const url = new URL(c.href);
-                    label = url.hostname.replace('www.', '') + url.pathname;
+                    urlLabel = url.hostname.replace('www.', '') + url.pathname;
                   } catch {
-                    label = c.href;
+                    urlLabel = c.href;
                   }
                   return (
-                    <div key={c.bentoId} className="space-y-1">
+                    <div key={c.href} className="space-y-1">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="truncate">{label}</span>
+                        <span className="truncate">{c.title ?? urlLabel}</span>
                         <span className="shrink-0 text-muted-foreground">
                           {c.clicks} · {Math.round(c.ctr * 100)}%
                         </span>
                       </div>
+                      {c.title && (
+                        <p className="truncate text-muted-foreground text-xs">
+                          {urlLabel}
+                        </p>
+                      )}
                       <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                         <div
                           className="h-full rounded-full bg-chart-3 transition-all"

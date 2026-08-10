@@ -1,3 +1,4 @@
+import { isBotUserAgent } from '@/lib/bot-detection';
 import { getCookie, isWhatsAppUrl, sendMetaCapiEvent } from '@/lib/meta-capi';
 import { getMetadata } from '@/lib/metadata';
 import { fetchMusicMetadata } from '@/lib/music';
@@ -147,8 +148,17 @@ export const profileLinkRouter = createTRPCRouter({
       const city = decodeCityHeader(ctx.req.headers.get('x-vercel-ip-city'));
       const userAgent = ctx.req.headers.get('user-agent') ?? 'Unknown';
       const metaPixelEventId = crypto.randomUUID();
+      const isOwner = authedUserId === profileLink.userId;
+      const isBot = isBotUserAgent(userAgent);
 
       after(async () => {
+        // Skip recording when the visitor is the page owner (browsing their
+        // own link) or a known bot/crawler (facebookexternalhit, WhatsApp's
+        // preview fetcher, curl, etc.) — neither represents a real visitor.
+        if (isOwner || isBot) {
+          return;
+        }
+
         await recordLinkView(profileLink.id, {
           ip: ip ?? 'Unknown',
           userAgent,
@@ -187,7 +197,6 @@ export const profileLinkRouter = createTRPCRouter({
       });
 
       const { metaCapiToken, ...publicProfileLink } = profileLink;
-      const isOwner = authedUserId === profileLink.userId;
 
       return {
         ...publicProfileLink,
@@ -218,6 +227,16 @@ export const profileLinkRouter = createTRPCRouter({
       const city = decodeCityHeader(ctx.req.headers.get('x-vercel-ip-city'));
       const userAgent = ctx.req.headers.get('user-agent') ?? 'Unknown';
 
+      const profile = await getProfileLinkById(input.linkId);
+      const isOwner = ctx.session?.user?.id === profile?.userId;
+      const isBot = isBotUserAgent(userAgent);
+
+      // Skip recording when the click came from the page owner or a known
+      // bot/crawler — neither represents a real visitor.
+      if (isOwner || isBot) {
+        return;
+      }
+
       await recordLinkClick(input.linkId, {
         bentoId: input.bentoId,
         href: input.href,
@@ -238,11 +257,10 @@ export const profileLinkRouter = createTRPCRouter({
       });
 
       after(async () => {
-        if (input.editSession) {
-          return;
-        }
-        const profile = await getProfileLinkById(input.linkId);
-        if (!(profile?.metaPixelId && profile.metaCapiToken)) {
+        if (
+          input.editSession ||
+          !(profile?.metaPixelId && profile.metaCapiToken)
+        ) {
           return;
         }
 
