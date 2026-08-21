@@ -23,6 +23,7 @@ import {
   Moon,
   Paintbrush,
   Palette,
+  SquareCode,
   Type,
 } from 'lucide-react';
 import Image from 'next/image';
@@ -85,6 +86,7 @@ export default function ThemeSettingsModal({
   const [backgroundImage, setBackgroundImage] = useState(
     profileLink?.backgroundImage ?? ''
   );
+  const [blankPage, setBlankPage] = useState(profileLink?.blankPage ?? false);
   const [uploadingBg, setUploadingBg] = useState(false);
   const bgFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -128,6 +130,7 @@ export default function ThemeSettingsModal({
       customFooter: customFooter || null,
       contentAlign,
       backgroundImage: backgroundImage || null,
+      blankPage,
     });
   };
 
@@ -262,6 +265,22 @@ export default function ThemeSettingsModal({
                 />
                 <Switch checked={darkMode} onCheckedChange={setDarkMode} />
               </div>
+            </div>
+
+            {/* Blank Page */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <SectionHeader
+                  icon={<SquareCode className="h-4 w-4" />}
+                  title="Página em Branco"
+                />
+                <Switch checked={blankPage} onCheckedChange={setBlankPage} />
+              </div>
+              <p className="text-muted-foreground text-xs">
+                Esconde avatar, nome e bio para quem visita — mostra só os
+                cards, ocupando a tela toda. Ideal para uma página feita 100%
+                com um card de HTML Personalizado.
+              </p>
             </div>
 
             {/* Content Alignment */}

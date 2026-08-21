@@ -1,0 +1,1 @@
+ALTER TABLE "link" ADD COLUMN "blank_page" boolean DEFAULT false NOT NULL;

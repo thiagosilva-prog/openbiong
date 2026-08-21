@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 import type * as z from 'zod';
 import CountdownCard from './countdown';
 import EmailCollectCard from './email-collect';
+import HtmlCard from './html';
 import ImageCard from './image';
 import LinkCard from './link';
 import NoteCard from './note';
@@ -73,6 +74,10 @@ export default function BentoCard({
 
   if (bento.type === 'views') {
     return <ViewsCard bento={bento} editable={editable} linkId={linkId} />;
+  }
+
+  if (bento.type === 'html') {
+    return <HtmlCard bento={bento} editable={editable} />;
   }
 
   return null;

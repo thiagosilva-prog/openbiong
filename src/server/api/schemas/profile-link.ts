@@ -74,6 +74,7 @@ export const UpdateLinkSchema = z.object({
   accentColor: z.string().nullable().optional(),
   darkMode: z.boolean().optional(),
   contentAlign: z.enum(['left', 'center', 'right']).optional(),
+  blankPage: z.boolean().optional(),
   customDomain: z.string().nullable().optional(),
   customFooter: z.string().nullable().optional(),
   backgroundImage: z.string().nullable().optional(),

@@ -3,21 +3,15 @@ import {
   ogMetadata,
   twitterMetadata,
 } from '@/app/shared-metadata';
-import OnboardingTour from '@/components/onboarding-tour';
-import { Skeleton } from '@/components/ui/skeleton';
 import { extractAttributionParams } from '@/lib/attribution';
 import { api } from '@/trpc/server';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense, cache } from 'react';
-import ActionBar from './_components/action-bar';
-import Bento from './_components/bento';
-import { BentoHistoryProvider } from './_components/bento-history';
-import ProfileLinkHeader from './_components/header';
 import MetaPixel from './_components/meta-pixel';
 import { PreviewProvider } from './_components/preview-context';
+import ProfileBody from './_components/profile-body';
 import ThemeWrapper from './_components/theme-wrapper';
-import ViewportContainer from './_components/viewport-container';
 
 type Props = {
   params: Promise<{
@@ -189,45 +183,7 @@ export default async function Page({ params, searchParams }: Props) {
           editSession={editRequested}
         >
           <Suspense>
-            <BentoHistoryProvider>
-              <ViewportContainer>
-                <div className="flex flex-col gap-y-6">
-                  <div className="animate-fade-in">
-                    <ProfileLinkHeader profileLink={profileLink} />
-                  </div>
-
-                  <Suspense
-                    fallback={
-                      <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-                        {Array.from({ length: 24 }).map((_, i) => (
-                          <Skeleton
-                            key={i}
-                            className="aspect-square h-full w-full"
-                          />
-                        ))}
-                      </div>
-                    }
-                  >
-                    <Bento profileLink={profileLink} />
-                  </Suspense>
-
-                  {profileLink.isOwner && (
-                    <>
-                      <ActionBar />
-                      <OnboardingTour />
-                    </>
-                  )}
-
-                  {profileLink.customFooter && (
-                    <footer className="animate-fade-in py-8 text-center">
-                      <p className="text-muted-foreground text-xs">
-                        {profileLink.customFooter}
-                      </p>
-                    </footer>
-                  )}
-                </div>
-              </ViewportContainer>
-            </BentoHistoryProvider>
+            <ProfileBody profileLink={profileLink} />
           </Suspense>
         </PreviewProvider>
       </ThemeWrapper>

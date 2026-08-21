@@ -15,6 +15,7 @@ import {
   ArrowLeft,
   Calendar,
   CloudSun,
+  Code2,
   Eye,
   EyeOff,
   Globe,
@@ -296,6 +297,20 @@ export default function ActionBar() {
               >
                 <Music size={14} className="shrink-0" />
                 Música
+              </button>
+              <button
+                type="button"
+                className={menuItemClass}
+                onClick={() =>
+                  addCard({
+                    id: crypto.randomUUID(),
+                    type: 'html',
+                    code: '',
+                  })
+                }
+              >
+                <Code2 size={14} className="shrink-0" />
+                HTML Personalizado
               </button>
               {!profileLink?.bento.some((b) => b.type === 'views') && (
                 <button

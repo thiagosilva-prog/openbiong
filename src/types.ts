@@ -158,6 +158,16 @@ export const ViewsBentoSchema = z.object({
   position: PositionSchema,
 });
 
+export const HtmlBentoSchema = z.object({
+  id: z.string(),
+  type: z.literal('html'),
+
+  code: z.string().optional(),
+
+  size: SizeSchema,
+  position: PositionSchema,
+});
+
 export const BentoSchema = LinkBentoSchema.or(NoteBentoSchema)
   .or(AssetBentoSchema)
   .or(MapBentoSchema)
@@ -168,7 +178,8 @@ export const BentoSchema = LinkBentoSchema.or(NoteBentoSchema)
   .or(TwitterBentoSchema)
   .or(MusicBentoSchema)
   .or(CalendarBentoSchema)
-  .or(ViewsBentoSchema);
+  .or(ViewsBentoSchema)
+  .or(HtmlBentoSchema);
 
 export const RESERVED_LINKS = [
   'sign-up',
