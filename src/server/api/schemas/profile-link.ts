@@ -84,6 +84,7 @@ export const UpdateLinkSchema = z.object({
   contentAlign: z.enum(['left', 'center', 'right']).optional(),
   customDomain: z.string().nullable().optional(),
   customFooter: z.string().nullable().optional(),
+  backgroundImage: z.string().nullable().optional(),
   metaPixelId: z
     .string()
     .regex(/^\d+$/, 'O ID do Pixel deve conter apenas números.')

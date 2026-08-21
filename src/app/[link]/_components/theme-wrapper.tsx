@@ -1,6 +1,7 @@
 'use client';
 
 import { getThemePreset } from '@/lib/themes';
+import Image from 'next/image';
 import { type CSSProperties, type ReactNode, useEffect } from 'react';
 
 export default function ThemeWrapper({
@@ -8,11 +9,13 @@ export default function ThemeWrapper({
   theme: themeName,
   darkMode,
   accentColor,
+  backgroundImage,
 }: {
   children: ReactNode;
   theme?: string;
   darkMode?: boolean;
   accentColor?: string | null;
+  backgroundImage?: string | null;
 }) {
   const theme = getThemePreset(themeName ?? 'default');
   const isDark = darkMode ?? false;
@@ -52,7 +55,22 @@ export default function ThemeWrapper({
       className={`${isDark ? 'dark ' : ''}w-full bg-background text-foreground`}
       style={style}
     >
-      <div className="fixed inset-0 z-0 bg-background" />
+      <div className="fixed inset-0 z-0 bg-background">
+        {backgroundImage && (
+          <>
+            <Image
+              src={backgroundImage}
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover"
+            />
+            {/* Scrim so header/body text stays legible over any photo */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
+          </>
+        )}
+      </div>
       <div className="relative z-10 w-full">{children}</div>
     </div>
   );

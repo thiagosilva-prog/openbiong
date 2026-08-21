@@ -20,6 +20,7 @@ export const link = pgTable('link', {
   link: text('link').unique().notNull(),
 
   image: text('image'),
+  backgroundImage: text('background_image'),
   name: text('name').notNull(),
   bio: text('bio'),
 

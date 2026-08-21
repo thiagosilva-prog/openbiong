@@ -23,9 +23,12 @@ export default function Bento({
     return null;
   }
 
+  // A card carrying a custom image is a deliberately "rich" card, not a
+  // plain link — auto-simplifying it away into the flat list would silently
+  // hide the very customization the owner just set up.
   const listMode =
     profileLink.bento.length > 0 &&
-    profileLink.bento.every((b) => b.type === 'link');
+    profileLink.bento.every((b) => b.type === 'link' && !b.image);
 
   return (
     <BentoLayout listMode={listMode}>

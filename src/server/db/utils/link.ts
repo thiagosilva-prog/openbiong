@@ -155,6 +155,7 @@ export const updateProfileLink = async (data: {
   contentAlign?: 'left' | 'center' | 'right';
   customDomain?: string | null;
   customFooter?: string | null;
+  backgroundImage?: string | null;
   metaPixelId?: string | null;
   metaCapiToken?: string | null;
   isPublic?: boolean;

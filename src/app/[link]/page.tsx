@@ -182,6 +182,7 @@ export default async function Page({ params, searchParams }: Props) {
         theme={profileLink.theme}
         darkMode={profileLink.darkMode}
         accentColor={profileLink.accentColor}
+        backgroundImage={profileLink.backgroundImage}
       >
         <PreviewProvider
           initialPreview={!editRequested}

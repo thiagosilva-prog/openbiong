@@ -9,7 +9,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
+import { toast } from '@/components/ui/use-toast';
 import { THEME_PRESETS } from '@/lib/themes';
+import { getUploadButtonLabel, uploadBentoImage } from '@/lib/upload';
 import { cn } from '@/lib/utils';
 import { api } from '@/trpc/react';
 import {
@@ -17,13 +19,15 @@ import {
   AlignLeft,
   AlignRight,
   Check,
+  Image as ImageIcon,
   Moon,
   Paintbrush,
   Palette,
   Type,
 } from 'lucide-react';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
-import { type ReactNode, useState } from 'react';
+import { type ChangeEvent, type ReactNode, useRef, useState } from 'react';
 
 type ContentAlign = 'left' | 'center' | 'right';
 
@@ -78,6 +82,11 @@ export default function ThemeSettingsModal({
   const [contentAlign, setContentAlign] = useState<ContentAlign>(
     (profileLink?.contentAlign as ContentAlign | undefined) ?? 'left'
   );
+  const [backgroundImage, setBackgroundImage] = useState(
+    profileLink?.backgroundImage ?? ''
+  );
+  const [uploadingBg, setUploadingBg] = useState(false);
+  const bgFileInputRef = useRef<HTMLInputElement>(null);
 
   const { mutateAsync: updateLink, isPending } =
     api.profileLink.update.useMutation({
@@ -87,6 +96,25 @@ export default function ThemeSettingsModal({
         setOpen(false);
       },
     });
+
+  const handleBgFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    setUploadingBg(true);
+    try {
+      setBackgroundImage(await uploadBentoImage(file));
+    } catch (err) {
+      toast({
+        title: 'Erro',
+        description: err instanceof Error ? err.message : 'Falha no envio',
+      });
+    } finally {
+      setUploadingBg(false);
+    }
+  };
 
   const save = () => {
     if (!profileLink) {
@@ -99,6 +127,7 @@ export default function ThemeSettingsModal({
       accentColor: accentColor || null,
       customFooter: customFooter || null,
       contentAlign,
+      backgroundImage: backgroundImage || null,
     });
   };
 
@@ -166,6 +195,62 @@ export default function ThemeSettingsModal({
                   );
                 })}
               </div>
+            </div>
+
+            {/* Background Image */}
+            <div className="space-y-3">
+              <SectionHeader
+                icon={<ImageIcon className="h-4 w-4" />}
+                title="Imagem de Fundo"
+              />
+              {backgroundImage ? (
+                <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border">
+                  <Image
+                    src={backgroundImage}
+                    alt="Pré-visualização do fundo"
+                    fill
+                    sizes="(max-width: 640px) 100vw, 512px"
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="flex aspect-video w-full items-center justify-center rounded-xl border border-border border-dashed bg-muted/50">
+                  <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                </div>
+              )}
+              <input
+                ref={bgFileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                className="hidden"
+                onChange={handleBgFileChange}
+              />
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 rounded-xl"
+                  disabled={uploadingBg}
+                  onClick={() => bgFileInputRef.current?.click()}
+                >
+                  {getUploadButtonLabel(uploadingBg, !!backgroundImage)}
+                </Button>
+                {backgroundImage && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="rounded-xl text-xs"
+                    onClick={() => setBackgroundImage('')}
+                  >
+                    Remover
+                  </Button>
+                )}
+              </div>
+              <p className="text-muted-foreground text-xs">
+                Aparece atrás de toda a página, com um degradê escuro por cima
+                para manter o texto legível. Ative o Modo Escuro abaixo para o
+                melhor contraste.
+              </p>
             </div>
 
             {/* Dark Mode */}

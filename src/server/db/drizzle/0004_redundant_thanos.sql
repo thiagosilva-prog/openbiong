@@ -1,0 +1,1 @@
+ALTER TABLE "link" ADD COLUMN "background_image" text;

@@ -11,18 +11,21 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from '@/components/ui/use-toast';
 import { extractAttributionParams } from '@/lib/attribution';
 import { isWhatsAppUrl } from '@/lib/meta-capi';
 import type { getMetadata } from '@/lib/metadata';
+import { getUploadButtonLabel, uploadBentoImage } from '@/lib/upload';
 import { cn } from '@/lib/utils';
 import { api } from '@/trpc/react';
 import type { LinkBentoSchema } from '@/types';
-import { Link2, Pencil } from 'lucide-react';
+import { ChevronRight, ImagePlus, Link2, Pencil } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
+import type { ChangeEvent } from 'react';
 import type React from 'react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { BiLogoTelegram } from 'react-icons/bi';
 import { BsDiscord, BsTwitterX } from 'react-icons/bs';
 import {
@@ -322,6 +325,15 @@ function ActionButton({
   );
 }
 
+function CustomCtaButton({ text }: { text: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 font-medium text-primary-foreground text-sm">
+      {text}
+      <ChevronRight className="h-3.5 w-3.5" />
+    </span>
+  );
+}
+
 // --- Layout Components ---
 
 function CardWrapper({
@@ -527,10 +539,12 @@ function WideLayout({
 }) {
   const href = bento.href ?? '';
   const platform = getPlatform(href);
-  const ogImage = metadata?.image;
+  // A manually uploaded card image always wins over the auto-fetched OG
+  // image — it's the whole point of letting someone brand their own card.
+  const displayImage = bento.image || metadata?.image;
 
-  // Generic link with OG image: image on the right
-  if (!platform && ogImage) {
+  // Link with a cover image (custom or OG): image on the right
+  if (displayImage) {
     return (
       <CardWrapper
         bento={bento}
@@ -540,18 +554,23 @@ function WideLayout({
       >
         <div className="flex flex-1 flex-col justify-between p-5">
           <IconBadge href={href} metadata={metadata} />
-          <div className="mt-auto space-y-1">
+          <div className="mt-auto space-y-2">
             {title && <p className="font-cal text-sm leading-tight">{title}</p>}
             {description && (
               <p className="line-clamp-2 text-muted-foreground text-xs">
                 {description}
               </p>
             )}
+            {bento.buttonText ? (
+              <CustomCtaButton text={bento.buttonText} />
+            ) : (
+              <ActionButton url={href} />
+            )}
           </div>
         </div>
         <div className="relative w-2/5 shrink-0">
           <Image
-            src={ogImage}
+            src={displayImage}
             alt={title ?? href}
             fill
             className="object-cover"
@@ -588,7 +607,11 @@ function WideLayout({
           </p>
         )}
         <div className="pt-2">
-          <ActionButton url={href} />
+          {bento.buttonText ? (
+            <CustomCtaButton text={bento.buttonText} />
+          ) : (
+            <ActionButton url={href} />
+          )}
         </div>
       </div>
     </CardWrapper>
@@ -668,6 +691,10 @@ export default function LinkCard({
   const [editOpen, setEditOpen] = useState(false);
   const [href, setHref] = useState(bento.href ?? '');
   const [customTitle, setCustomTitle] = useState(bento.title ?? '');
+  const [customImage, setCustomImage] = useState(bento.image ?? '');
+  const [buttonText, setButtonText] = useState(bento.buttonText ?? '');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const imageFileInputRef = useRef<HTMLInputElement>(null);
 
   const queryClient = api.useContext();
   const { mutateAsync: updateBento, isPending } =
@@ -678,23 +705,49 @@ export default function LinkCard({
     { enabled: !!bento.href }
   );
 
+  const handleImageFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      setCustomImage(await uploadBentoImage(file));
+    } catch (err) {
+      toast({
+        title: 'Erro',
+        description: err instanceof Error ? err.message : 'Falha no envio',
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleSave = async () => {
     const nextTitle = customTitle.trim() || undefined;
+    const nextImage = customImage.trim() || undefined;
+    const nextButtonText = buttonText.trim() || undefined;
+    const updated = {
+      ...bento,
+      href,
+      title: nextTitle,
+      image: nextImage,
+      buttonText: nextButtonText,
+    };
     queryClient.profileLink.getByLink.setData({ link: params.link }, (old) => {
       if (!old) {
         return old;
       }
       return {
         ...old,
-        bento: old.bento.map((b) =>
-          b.id === bento.id ? { ...b, href, title: nextTitle } : b
-        ),
+        bento: old.bento.map((b) => (b.id === bento.id ? updated : b)),
       };
     });
 
     await updateBento({
       link: params.link,
-      bento: { ...bento, href, title: nextTitle },
+      bento: updated,
     });
     setEditOpen(false);
   };
@@ -750,6 +803,72 @@ export default function LinkCard({
               />
               <p className="text-muted-foreground text-xs">
                 Deixe em branco para usar o título detectado automaticamente.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label className="font-medium text-sm">Imagem do Card</Label>
+              {customImage ? (
+                <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border">
+                  <Image
+                    src={customImage}
+                    alt="Pré-visualização"
+                    fill
+                    sizes="(max-width: 640px) 100vw, 512px"
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="flex aspect-video w-full items-center justify-center rounded-xl border border-border border-dashed bg-muted/50">
+                  <ImagePlus className="h-8 w-8 text-muted-foreground" />
+                </div>
+              )}
+              <input
+                ref={imageFileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                className="hidden"
+                onChange={handleImageFileChange}
+              />
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 rounded-xl"
+                  disabled={uploadingImage}
+                  onClick={() => imageFileInputRef.current?.click()}
+                >
+                  {getUploadButtonLabel(uploadingImage, !!customImage)}
+                </Button>
+                {customImage && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="rounded-xl text-xs"
+                    onClick={() => setCustomImage('')}
+                  >
+                    Remover
+                  </Button>
+                )}
+              </div>
+              <p className="text-muted-foreground text-xs">
+                Aparece no card no tamanho Largo. Sem imagem, usamos a imagem de
+                prévia do link quando disponível.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="link-button-text" className="font-medium text-sm">
+                Texto do Botão
+              </Label>
+              <Input
+                id="link-button-text"
+                placeholder="Ex: Entrar em contato"
+                value={buttonText}
+                maxLength={30}
+                onChange={(e) => setButtonText(e.target.value)}
+                className="rounded-xl"
+              />
+              <p className="text-muted-foreground text-xs">
+                Substitui o botão padrão por um texto personalizado.
               </p>
             </div>
             <Button

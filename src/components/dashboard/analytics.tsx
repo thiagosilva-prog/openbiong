@@ -339,8 +339,14 @@ function TrafficCard({
 
 type OverTimeRow = { date: string; count: number };
 
-function buildChartData(viewsOverTime: OverTimeRow[], clicksOverTime: OverTimeRow[]) {
-  const byDate = new Map<string, { date: string; views: number; clicks: number }>();
+function buildChartData(
+  viewsOverTime: OverTimeRow[],
+  clicksOverTime: OverTimeRow[]
+) {
+  const byDate = new Map<
+    string,
+    { date: string; views: number; clicks: number }
+  >();
   for (const v of viewsOverTime) {
     byDate.set(v.date, { date: formatDate(v.date), views: v.count, clicks: 0 });
   }
@@ -349,7 +355,11 @@ function buildChartData(viewsOverTime: OverTimeRow[], clicksOverTime: OverTimeRo
     if (existing) {
       existing.clicks = c.count;
     } else {
-      byDate.set(c.date, { date: formatDate(c.date), views: 0, clicks: c.count });
+      byDate.set(c.date, {
+        date: formatDate(c.date),
+        views: 0,
+        clicks: c.count,
+      });
     }
   }
   return Array.from(byDate.entries())
