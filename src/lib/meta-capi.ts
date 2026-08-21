@@ -60,6 +60,34 @@ export async function sendMetaCapiEvent(
   }
 }
 
+// Meta's official standard events — these get better ad-optimization
+// treatment than custom events, so the client pixel needs `fbq('track', …)`
+// for these specific names and `fbq('trackCustom', …)` for anything else.
+// The Conversions API has no such distinction (event_name is just a string).
+export const STANDARD_META_EVENTS = [
+  'AddPaymentInfo',
+  'AddToCart',
+  'AddToWishlist',
+  'CompleteRegistration',
+  'Contact',
+  'CustomizeProduct',
+  'Donate',
+  'FindLocation',
+  'InitiateCheckout',
+  'Lead',
+  'Purchase',
+  'Schedule',
+  'Search',
+  'StartTrial',
+  'SubmitApplication',
+  'Subscribe',
+  'ViewContent',
+] as const;
+
+export function isStandardMetaEvent(name: string): boolean {
+  return (STANDARD_META_EVENTS as readonly string[]).includes(name);
+}
+
 export function isWhatsAppUrl(href: string): boolean {
   try {
     const hostname = new URL(href).hostname;

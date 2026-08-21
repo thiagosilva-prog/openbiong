@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/use-toast';
 import { extractAttributionParams } from '@/lib/attribution';
-import { isWhatsAppUrl } from '@/lib/meta-capi';
+import { isStandardMetaEvent, isWhatsAppUrl } from '@/lib/meta-capi';
 import type { getMetadata } from '@/lib/metadata';
 import { getUploadButtonLabel, uploadBentoImage } from '@/lib/upload';
 import { cn } from '@/lib/utils';
@@ -325,6 +325,25 @@ function ActionButton({
   );
 }
 
+const META_EVENT_PRESETS = [
+  'Lead',
+  'Contact',
+  'Schedule',
+  'SubmitApplication',
+  'CompleteRegistration',
+] as const;
+
+function fireMetaPixelClickEvent(bento: BentoData, eventId: string) {
+  if (typeof window === 'undefined' || !window.fbq || !bento.href) {
+    return;
+  }
+  const eventName =
+    bento.metaEventName?.trim() ||
+    (isWhatsAppUrl(bento.href) ? 'Contact' : 'BioLinkClick');
+  const method = isStandardMetaEvent(eventName) ? 'track' : 'trackCustom';
+  window.fbq(method, eventName, { link_url: bento.href }, { eventID: eventId });
+}
+
 function CustomCtaButton({ text }: { text: string }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 font-medium text-primary-foreground text-sm">
@@ -372,17 +391,8 @@ function CardWrapper({
         ...extractAttributionParams(searchParams),
       });
 
-      if (!editSession && typeof window !== 'undefined' && window.fbq) {
-        if (isWhatsAppUrl(bento.href)) {
-          window.fbq('track', 'Contact', {}, { eventID: eventId });
-        } else {
-          window.fbq(
-            'trackCustom',
-            'BioLinkClick',
-            { link_url: bento.href },
-            { eventID: eventId }
-          );
-        }
+      if (!editSession) {
+        fireMetaPixelClickEvent(bento, eventId);
       }
     }
   };
@@ -676,6 +686,26 @@ function LinkLayout({
   );
 }
 
+function buildUpdatedLinkBento(
+  bento: BentoData,
+  fields: {
+    href: string;
+    title: string;
+    image: string;
+    buttonText: string;
+    metaEventName: string;
+  }
+): BentoData {
+  return {
+    ...bento,
+    href: fields.href,
+    title: fields.title.trim() || undefined,
+    image: fields.image.trim() || undefined,
+    buttonText: fields.buttonText.trim() || undefined,
+    metaEventName: fields.metaEventName.trim() || undefined,
+  };
+}
+
 // --- Main Component ---
 
 export default function LinkCard({
@@ -693,6 +723,7 @@ export default function LinkCard({
   const [customTitle, setCustomTitle] = useState(bento.title ?? '');
   const [customImage, setCustomImage] = useState(bento.image ?? '');
   const [buttonText, setButtonText] = useState(bento.buttonText ?? '');
+  const [metaEventName, setMetaEventName] = useState(bento.metaEventName ?? '');
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -725,25 +756,21 @@ export default function LinkCard({
   };
 
   const handleSave = async () => {
-    const nextTitle = customTitle.trim() || undefined;
-    const nextImage = customImage.trim() || undefined;
-    const nextButtonText = buttonText.trim() || undefined;
-    const updated = {
-      ...bento,
+    const updated = buildUpdatedLinkBento(bento, {
       href,
-      title: nextTitle,
-      image: nextImage,
-      buttonText: nextButtonText,
-    };
-    queryClient.profileLink.getByLink.setData({ link: params.link }, (old) => {
-      if (!old) {
-        return old;
-      }
-      return {
-        ...old,
-        bento: old.bento.map((b) => (b.id === bento.id ? updated : b)),
-      };
+      title: customTitle,
+      image: customImage,
+      buttonText,
+      metaEventName,
     });
+    queryClient.profileLink.getByLink.setData(
+      { link: params.link },
+      (old) =>
+        old && {
+          ...old,
+          bento: old.bento.map((b) => (b.id === bento.id ? updated : b)),
+        }
+    );
 
     await updateBento({
       link: params.link,
@@ -759,6 +786,7 @@ export default function LinkCard({
   const title = bento.title || getTitle(bento.href, metadata ?? undefined);
   const description = getDescription(bento.href, metadata ?? undefined);
   const onEdit = editable ? () => setEditOpen(true) : undefined;
+  const defaultMetaEventName = isWhatsAppUrl(href) ? 'Contact' : 'BioLinkClick';
 
   return (
     <>
@@ -869,6 +897,36 @@ export default function LinkCard({
               />
               <p className="text-muted-foreground text-xs">
                 Substitui o botão padrão por um texto personalizado.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="link-meta-event" className="font-medium text-sm">
+                Evento do Meta Pixel (opcional)
+              </Label>
+              <Input
+                id="link-meta-event"
+                placeholder="Ex: Lead, ou um nome personalizado"
+                value={metaEventName}
+                maxLength={40}
+                onChange={(e) => setMetaEventName(e.target.value)}
+                className="rounded-xl"
+              />
+              <div className="flex flex-wrap gap-1.5">
+                {META_EVENT_PRESETS.map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setMetaEventName(preset)}
+                    className="rounded-full border border-border px-2.5 py-1 text-muted-foreground text-xs transition-colors hover:bg-muted hover:text-foreground"
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+              <p className="text-muted-foreground text-xs">
+                Disparado no Pixel e na Conversions API assim que alguém clicar
+                nesse link. Deixe em branco para usar o padrão ("
+                {defaultMetaEventName}").
               </p>
             </div>
             <Button

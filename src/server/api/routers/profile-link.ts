@@ -263,11 +263,20 @@ export const profileLinkRouter = createTRPCRouter({
           return;
         }
 
+        const clickedCard = profile.bento.find((b) => b.id === input.bentoId);
+        const customEventName =
+          clickedCard?.type === 'link'
+            ? clickedCard.metaEventName?.trim()
+            : undefined;
+        const eventName =
+          customEventName ||
+          (isWhatsAppUrl(input.href) ? 'Contact' : 'BioLinkClick');
+
         const cookieHeader = ctx.req.headers.get('cookie');
         await sendMetaCapiEvent({
           pixelId: profile.metaPixelId,
           accessToken: profile.metaCapiToken,
-          eventName: isWhatsAppUrl(input.href) ? 'Contact' : 'BioLinkClick',
+          eventName,
           eventId: input.eventId,
           eventSourceUrl: `https://openbio.app/${profile.link}`,
           clientIp: ip ?? undefined,
