@@ -107,11 +107,11 @@ export const recordLinkView = async (
           redis.del(`analytics:views-over-time:${linkId}:${days}`),
           redis.del(`analytics:top-referrers:${linkId}:${days}`),
           redis.del(`analytics:devices:${linkId}:${days}`),
-          redis.del(`analytics:geo:${linkId}:${days}`),
           redis.del(`analytics:utm:${linkId}:${days}`),
           redis.del(`analytics:traffic-source:${linkId}:${days}`),
           redis.del(`analytics:locations:${linkId}:${days}`),
           redis.del(`analytics:card-stats:${linkId}:${days}`),
+          redis.del(`analytics:period-comparison:${linkId}:${days}`),
           redis.del(`profile-link-views-window:${linkId}:${days}`),
         ]),
       ]);
@@ -189,35 +189,6 @@ export async function getDeviceBreakdown(linkId: string, days: number) {
   return result;
 }
 
-export async function getGeoBreakdown(linkId: string, days: number) {
-  const cacheKey = `analytics:geo:${linkId}:${days}`;
-  const cached = await safeCacheGet(cacheKey);
-  if (cached) {
-    return cached as { country: string; count: number }[];
-  }
-
-  const since = new Date();
-  since.setDate(since.getDate() - days);
-
-  const result = await db
-    .select({
-      country: sql<string>`coalesce(${linkView.country}, 'Desconhecido')`,
-      count: count(),
-    })
-    .from(linkView)
-    .where(and(eq(linkView.linkId, linkId), gte(linkView.createdAt, since)))
-    .groupBy(linkView.country)
-    .orderBy(desc(count()))
-    .limit(20);
-
-  const mapped = result.map((r) => ({
-    country: r.country,
-    count: Number(r.count),
-  }));
-  await safeCacheSet(cacheKey, mapped, { ex: 300 });
-  return mapped;
-}
-
 export async function getTotalViewsInWindow(linkId: string, days: number) {
   const cacheKey = `profile-link-views-window:${linkId}:${days}`;
   const cached = await safeCacheGet<number>(cacheKey);
@@ -286,11 +257,18 @@ export async function getTrafficSourceBreakdown(linkId: string, days: number) {
   since.setDate(since.getDate() - days);
 
   // Priority order for the rare URL that carries more than one click-id.
+  // A visit referred by Instagram/Facebook but with no ad click-id means the
+  // person browsed to the profile and tapped the bio link themselves — real
+  // traffic, but not attributable to a specific ad the way a click-id is.
   const source = sql<string>`case
     when ${linkView.fbclid} is not null then 'Facebook/Instagram Ads'
     when ${linkView.gclid} is not null then 'Google Ads'
     when ${linkView.ttclid} is not null then 'TikTok Ads'
-    else 'Orgânico/Direto'
+    when ${linkView.referrer} ilike '%instagram.com%'
+      or ${linkView.referrer} ilike '%facebook.com%'
+      or ${linkView.referrer} ilike '%fb.me%' then 'Instagram/Facebook (sem clique de anúncio)'
+    when ${linkView.referrer} is null then 'Direto'
+    else 'Outro (orgânico)'
   end`;
 
   const result = await db
@@ -308,16 +286,23 @@ export async function getTrafficSourceBreakdown(linkId: string, days: number) {
   return mapped;
 }
 
-export async function getLocationBreakdown(linkId: string, days: number) {
+export type LocationBreakdownRow = {
+  country: string;
+  count: number;
+  cities: { city: string; region: string; count: number }[];
+};
+
+// Merges what used to be two separate breakdowns (country-only, and flat
+// city/region/country) into one: countries as the primary grouping, with
+// each country's top cities nested underneath for detail on demand.
+export async function getLocationBreakdown(
+  linkId: string,
+  days: number
+): Promise<LocationBreakdownRow[]> {
   const cacheKey = `analytics:locations:${linkId}:${days}`;
-  const cached = await safeCacheGet(cacheKey);
+  const cached = await safeCacheGet<LocationBreakdownRow[]>(cacheKey);
   if (cached) {
-    return cached as {
-      country: string;
-      region: string;
-      city: string;
-      count: number;
-    }[];
+    return cached;
   }
 
   const since = new Date();
@@ -327,20 +312,44 @@ export async function getLocationBreakdown(linkId: string, days: number) {
   const region = sql<string>`coalesce(${linkView.region}, 'Desconhecido')`;
   const city = sql<string>`coalesce(${linkView.city}, 'Desconhecido')`;
 
-  const result = await db
-    .select({ country, region, city, count: count() })
-    .from(linkView)
-    .where(and(eq(linkView.linkId, linkId), gte(linkView.createdAt, since)))
-    .groupBy(country, region, city)
-    .orderBy(desc(count()))
-    .limit(15);
+  const [countryRows, cityRows] = await Promise.all([
+    db
+      .select({ country, count: count() })
+      .from(linkView)
+      .where(and(eq(linkView.linkId, linkId), gte(linkView.createdAt, since)))
+      .groupBy(country)
+      .orderBy(desc(count()))
+      .limit(10),
+    db
+      .select({ country, region, city, count: count() })
+      .from(linkView)
+      .where(and(eq(linkView.linkId, linkId), gte(linkView.createdAt, since)))
+      .groupBy(country, region, city)
+      .orderBy(desc(count()))
+      .limit(60),
+  ]);
 
-  const mapped = result.map((r) => ({
+  const citiesByCountry = new Map<
+    string,
+    { city: string; region: string; count: number }[]
+  >();
+  for (const row of cityRows) {
+    if (row.city === 'Desconhecido') {
+      continue;
+    }
+    const list = citiesByCountry.get(row.country) ?? [];
+    list.push({ city: row.city, region: row.region, count: Number(row.count) });
+    citiesByCountry.set(row.country, list);
+  }
+
+  const result = countryRows.map((r) => ({
     country: r.country,
-    region: r.region,
-    city: r.city,
     count: Number(r.count),
+    cities: (citiesByCountry.get(r.country) ?? [])
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3),
   }));
-  await safeCacheSet(cacheKey, mapped, { ex: 300 });
-  return mapped;
+
+  await safeCacheSet(cacheKey, result, { ex: 300 });
+  return result;
 }

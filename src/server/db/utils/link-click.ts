@@ -1,5 +1,5 @@
 import { redis, safeCacheGet, safeCacheSet } from '@/lib/redis';
-import { and, desc, eq, gte, sql } from 'drizzle-orm';
+import { and, countDistinct, desc, eq, gte, lt, sql } from 'drizzle-orm';
 import { db } from '../db';
 import { linkClick, linkView } from '../schema';
 import { getTotalViewsInWindow } from './link-view';
@@ -75,6 +75,7 @@ export const recordLinkClick = async (
       ...CACHE_WINDOWS.flatMap((days) => [
         redis.del(`analytics:clicks-over-time:${linkId}:${days}`),
         redis.del(`analytics:card-stats:${linkId}:${days}`),
+        redis.del(`analytics:period-comparison:${linkId}:${days}`),
       ]),
     ]);
   } catch {
@@ -249,4 +250,111 @@ export const getTotalClicks = async (linkId: string) => {
   const count = Number(rows[0]?.count ?? 0);
   await safeCacheSet(`profile-link-clicks:${linkId}`, count, { ex: 30 * 60 });
   return count;
+};
+
+type PeriodMetric = { current: number; previous: number };
+
+export type PeriodComparison = {
+  views: PeriodMetric;
+  uniqueViews: PeriodMetric;
+  clicks: PeriodMetric;
+};
+
+// Compares the selected window against the equal-length window right before
+// it (e.g. last 30 days vs. the 30 days before that), powering the trend
+// arrows on the summary cards.
+export const getPeriodComparison = async (
+  linkId: string,
+  days: number
+): Promise<PeriodComparison> => {
+  const cacheKey = `analytics:period-comparison:${linkId}:${days}`;
+  const cached = await safeCacheGet<PeriodComparison>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const now = new Date();
+  const currentSince = new Date(now);
+  currentSince.setDate(currentSince.getDate() - days);
+  const previousSince = new Date(now);
+  previousSince.setDate(previousSince.getDate() - days * 2);
+
+  const [
+    currentViews,
+    previousViews,
+    currentUnique,
+    previousUnique,
+    currentClicks,
+    previousClicks,
+  ] = await Promise.all([
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(linkView)
+      .where(
+        and(eq(linkView.linkId, linkId), gte(linkView.createdAt, currentSince))
+      ),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(linkView)
+      .where(
+        and(
+          eq(linkView.linkId, linkId),
+          gte(linkView.createdAt, previousSince),
+          lt(linkView.createdAt, currentSince)
+        )
+      ),
+    db
+      .select({ count: countDistinct(linkView.ip) })
+      .from(linkView)
+      .where(
+        and(eq(linkView.linkId, linkId), gte(linkView.createdAt, currentSince))
+      ),
+    db
+      .select({ count: countDistinct(linkView.ip) })
+      .from(linkView)
+      .where(
+        and(
+          eq(linkView.linkId, linkId),
+          gte(linkView.createdAt, previousSince),
+          lt(linkView.createdAt, currentSince)
+        )
+      ),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(linkClick)
+      .where(
+        and(
+          eq(linkClick.linkId, linkId),
+          gte(linkClick.createdAt, currentSince)
+        )
+      ),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(linkClick)
+      .where(
+        and(
+          eq(linkClick.linkId, linkId),
+          gte(linkClick.createdAt, previousSince),
+          lt(linkClick.createdAt, currentSince)
+        )
+      ),
+  ]);
+
+  const result: PeriodComparison = {
+    views: {
+      current: Number(currentViews[0]?.count ?? 0),
+      previous: Number(previousViews[0]?.count ?? 0),
+    },
+    uniqueViews: {
+      current: Number(currentUnique[0]?.count ?? 0),
+      previous: Number(previousUnique[0]?.count ?? 0),
+    },
+    clicks: {
+      current: Number(currentClicks[0]?.count ?? 0),
+      previous: Number(previousClicks[0]?.count ?? 0),
+    },
+  };
+
+  await safeCacheSet(cacheKey, result, { ex: 300 });
+  return result;
 };

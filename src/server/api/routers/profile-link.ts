@@ -32,8 +32,8 @@ import {
   getClicksOverTime,
   getDeviceBreakdown,
   getEmailSubscribers,
-  getGeoBreakdown,
   getLocationBreakdown,
+  getPeriodComparison,
   getProfileLinkById,
   getProfileLinkByLink,
   getProfileLinkUniqueViews,
@@ -323,10 +323,10 @@ export const profileLinkRouter = createTRPCRouter({
         cardStats,
         topReferrers,
         deviceBreakdown,
-        geoBreakdown,
         utmBreakdown,
         trafficSourceBreakdown,
         locationBreakdown,
+        periodComparison,
       ] = await Promise.all([
         getProfileLinkViews(input.linkId),
         getProfileLinkUniqueViews(input.linkId),
@@ -336,10 +336,10 @@ export const profileLinkRouter = createTRPCRouter({
         getCardStats(input.linkId, input.days),
         getTopReferrers(input.linkId, input.days),
         getDeviceBreakdown(input.linkId, input.days),
-        getGeoBreakdown(input.linkId, input.days),
         getUtmBreakdown(input.linkId, input.days),
         getTrafficSourceBreakdown(input.linkId, input.days),
         getLocationBreakdown(input.linkId, input.days),
+        getPeriodComparison(input.linkId, input.days),
       ]);
 
       return {
@@ -351,10 +351,10 @@ export const profileLinkRouter = createTRPCRouter({
         cardStats,
         topReferrers,
         deviceBreakdown,
-        geoBreakdown,
         utmBreakdown,
         trafficSourceBreakdown,
         locationBreakdown,
+        periodComparison,
       };
     }),
 

@@ -14,7 +14,9 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/components/ui/use-toast';
+import { cn } from '@/lib/utils';
 import { api } from '@/trpc/react';
 import {
   Copy,
@@ -23,34 +25,243 @@ import {
   Eye,
   Globe,
   Mail,
-  MapPin,
   Megaphone,
   Monitor,
   MousePointerClick,
   Target,
+  TrendingDown,
+  TrendingUp,
   Users,
 } from 'lucide-react';
+import type { ComponentType } from 'react';
+import { useState } from 'react';
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
 
-const viewsConfig = {
+const trafficConfig = {
   views: {
     label: 'Visualizações',
     color: 'var(--chart-1)',
   },
-} satisfies ChartConfig;
-
-const clicksConfig = {
   clicks: {
     label: 'Cliques',
     color: 'var(--chart-2)',
   },
 } satisfies ChartConfig;
 
+const DAY_OPTIONS = [7, 30, 90] as const;
+
 function formatDate(dateStr: string) {
   const d = new Date(dateStr);
   return d.toLocaleDateString('pt-BR', { month: 'short', day: 'numeric' });
 }
 
+type Trend = { pct: number; isUp: boolean; isNew: boolean };
+
+function computeTrend(current: number, previous: number): Trend | null {
+  if (previous === 0) {
+    return current > 0 ? { pct: 0, isUp: true, isNew: true } : null;
+  }
+  const pct = Math.round(((current - previous) / previous) * 100);
+  return { pct, isUp: pct >= 0, isNew: false };
+}
+
+function TrendBadge({
+  current,
+  previous,
+}: {
+  current: number;
+  previous: number;
+}) {
+  const trend = computeTrend(current, previous);
+  if (!trend) {
+    return null;
+  }
+  const Icon = trend.isUp ? TrendingUp : TrendingDown;
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center gap-0.5 font-medium text-xs',
+        trend.isUp
+          ? 'text-emerald-600 dark:text-emerald-400'
+          : 'text-red-600 dark:text-red-400'
+      )}
+    >
+      <Icon className="h-3 w-3" />
+      {trend.isNew ? 'novo' : `${trend.pct > 0 ? '+' : ''}${trend.pct}%`}
+    </span>
+  );
+}
+
+type BreakdownItem = { label: string; count: number };
+
+function BreakdownList({
+  items,
+  colorClass,
+  emptyText,
+  icon: Icon,
+  capitalize,
+}: {
+  items: BreakdownItem[] | undefined;
+  colorClass: string;
+  emptyText: string;
+  icon?: ComponentType<{ className?: string }>;
+  capitalize?: boolean;
+}) {
+  if (!items?.length) {
+    return (
+      <p className="py-6 text-center text-muted-foreground text-sm">
+        {emptyText}
+      </p>
+    );
+  }
+  const maxCount = items[0]?.count ?? 1;
+  return (
+    <div className="space-y-3">
+      {items.map((item) => {
+        const pct = Math.round((item.count / maxCount) * 100);
+        return (
+          <div key={item.label} className="space-y-1">
+            <div className="flex items-center justify-between text-sm">
+              <span
+                className={cn(
+                  'flex min-w-0 items-center gap-1.5',
+                  capitalize && 'capitalize'
+                )}
+              >
+                {Icon && (
+                  <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                )}
+                <span className="truncate">{item.label}</span>
+              </span>
+              <span className="shrink-0 text-muted-foreground">
+                {item.count}
+              </span>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                className={cn('h-full rounded-full transition-all', colorClass)}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+type DeviceBreakdown = {
+  devices: { device: string; count: number }[];
+  browsers: { browser: string; count: number }[];
+  os: { os: string; count: number }[];
+};
+
+function DeviceTabsCard({ data }: { data: DeviceBreakdown | undefined }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="font-cal">Dispositivo & Navegador</CardTitle>
+        <CardDescription>Como seus visitantes acessam</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Tabs defaultValue="device">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="device">Dispositivo</TabsTrigger>
+            <TabsTrigger value="os">Sistema</TabsTrigger>
+            <TabsTrigger value="browser">Navegador</TabsTrigger>
+          </TabsList>
+          <TabsContent value="device">
+            <BreakdownList
+              items={data?.devices.map((d) => ({
+                label: d.device,
+                count: d.count,
+              }))}
+              icon={Monitor}
+              colorClass="bg-chart-4"
+              emptyText="Ainda não há dados de dispositivos"
+              capitalize
+            />
+          </TabsContent>
+          <TabsContent value="os">
+            <BreakdownList
+              items={data?.os.map((o) => ({ label: o.os, count: o.count }))}
+              icon={Cpu}
+              colorClass="bg-chart-3"
+              emptyText="Ainda não há dados de sistema operacional"
+            />
+          </TabsContent>
+          <TabsContent value="browser">
+            <BreakdownList
+              items={data?.browsers.map((b) => ({
+                label: b.browser,
+                count: b.count,
+              }))}
+              colorClass="bg-chart-5"
+              emptyText="Ainda não há dados de navegadores"
+            />
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
+  );
+}
+
+type LocationBreakdownRow = {
+  country: string;
+  count: number;
+  cities: { city: string; region: string; count: number }[];
+};
+
+function LocationCard({ data }: { data: LocationBreakdownRow[] | undefined }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="font-cal">Localização</CardTitle>
+        <CardDescription>De onde seus visitantes acessam</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {data?.length ? (
+          <div className="space-y-4">
+            {data.map((l) => {
+              const maxCount = data[0]?.count ?? 1;
+              const pct = Math.round((l.count / maxCount) * 100);
+              return (
+                <div key={l.country} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex min-w-0 items-center gap-1.5">
+                      <Globe className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <span className="truncate">{l.country}</span>
+                    </span>
+                    <span className="shrink-0 text-muted-foreground">
+                      {l.count}
+                    </span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  {l.cities.length > 0 && (
+                    <p className="truncate pl-5 text-muted-foreground text-xs">
+                      {l.cities.map((c) => c.city).join(' · ')}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="py-6 text-center text-muted-foreground text-sm">
+            Ainda não há dados de localização
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+type TrafficSourceRow = { source: string; count: number };
 type UtmBreakdownRow = {
   source: string;
   medium: string;
@@ -58,18 +269,40 @@ type UtmBreakdownRow = {
   count: number;
 };
 
-function CampaignsCard({ data }: { data: UtmBreakdownRow[] | undefined }) {
+function TrafficCard({
+  sourceData,
+  campaignData,
+}: {
+  sourceData: TrafficSourceRow[] | undefined;
+  campaignData: UtmBreakdownRow[] | undefined;
+}) {
+  // Rows with no UTM tag at all just restate what the source breakdown
+  // above already shows ("(não definido)" / "Direto") — only real, tagged
+  // campaigns are worth a second list here.
+  const taggedCampaigns = campaignData?.filter(
+    (u) => u.campaign !== '(não definido)'
+  );
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-cal">Campanhas</CardTitle>
-        <CardDescription>Tráfego por campanha UTM</CardDescription>
+        <CardTitle className="font-cal">Tráfego</CardTitle>
+        <CardDescription>De onde vêm os visitantes e cliques</CardDescription>
       </CardHeader>
-      <CardContent>
-        {data?.length ? (
-          <div className="space-y-3">
-            {data.map((u) => {
-              const maxCount = data[0]?.count ?? 1;
+      <CardContent className="space-y-5">
+        <BreakdownList
+          items={sourceData?.map((s) => ({ label: s.source, count: s.count }))}
+          icon={Megaphone}
+          colorClass="bg-chart-2"
+          emptyText="Ainda não há dados de tráfego"
+        />
+        {taggedCampaigns && taggedCampaigns.length > 0 && (
+          <div className="space-y-3 border-t pt-4">
+            <p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+              Campanhas UTM
+            </p>
+            {taggedCampaigns.map((u) => {
+              const maxCount = taggedCampaigns[0]?.count ?? 1;
               const pct = Math.round((u.count / maxCount) * 100);
               const key = `${u.source}:${u.medium}:${u.campaign}`;
               return (
@@ -98,131 +331,42 @@ function CampaignsCard({ data }: { data: UtmBreakdownRow[] | undefined }) {
               );
             })}
           </div>
-        ) : (
-          <p className="py-6 text-center text-muted-foreground text-sm">
-            Ainda não há dados de campanha
-          </p>
         )}
       </CardContent>
     </Card>
   );
 }
 
-type TrafficSourceRow = { source: string; count: number };
+type OverTimeRow = { date: string; count: number };
 
-function AdTrafficSourceCard({
-  data,
-}: {
-  data: TrafficSourceRow[] | undefined;
-}) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="font-cal">
-          Origem do Tráfego de Anúncios
-        </CardTitle>
-        <CardDescription>Visitantes de cliques em anúncios</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {data?.length ? (
-          <div className="space-y-3">
-            {data.map((s) => {
-              const maxCount = data[0]?.count ?? 1;
-              const pct = Math.round((s.count / maxCount) * 100);
-              return (
-                <div key={s.source} className="space-y-1">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-1.5">
-                      <Megaphone className="h-3.5 w-3.5 text-muted-foreground" />
-                      {s.source}
-                    </span>
-                    <span className="shrink-0 text-muted-foreground">
-                      {s.count}
-                    </span>
-                  </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full bg-chart-2 transition-all"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="py-6 text-center text-muted-foreground text-sm">
-            Ainda não há dados de tráfego de anúncios
-          </p>
-        )}
-      </CardContent>
-    </Card>
-  );
+function buildChartData(viewsOverTime: OverTimeRow[], clicksOverTime: OverTimeRow[]) {
+  const byDate = new Map<string, { date: string; views: number; clicks: number }>();
+  for (const v of viewsOverTime) {
+    byDate.set(v.date, { date: formatDate(v.date), views: v.count, clicks: 0 });
+  }
+  for (const c of clicksOverTime) {
+    const existing = byDate.get(c.date);
+    if (existing) {
+      existing.clicks = c.count;
+    } else {
+      byDate.set(c.date, { date: formatDate(c.date), views: 0, clicks: c.count });
+    }
+  }
+  return Array.from(byDate.entries())
+    .sort(([a], [b]) => (a < b ? -1 : 1))
+    .map(([, v]) => v);
 }
 
-type LocationBreakdownRow = {
-  country: string;
-  region: string;
-  city: string;
-  count: number;
-};
-
-function TopLocationsCard({
-  data,
-}: { data: LocationBreakdownRow[] | undefined }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="font-cal">Principais Localizações</CardTitle>
-        <CardDescription>Localização dos visitantes por cidade</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {data?.length ? (
-          <div className="space-y-3">
-            {data.map((l) => {
-              const maxCount = data[0]?.count ?? 1;
-              const pct = Math.round((l.count / maxCount) * 100);
-              const key = `${l.country}:${l.region}:${l.city}`;
-              const label = [l.city, l.region, l.country]
-                .filter((part) => part && part !== 'Unknown')
-                .join(', ');
-              return (
-                <div key={key} className="space-y-1">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-1.5 truncate">
-                      <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                      <span className="truncate">
-                        {label || 'Desconhecido'}
-                      </span>
-                    </span>
-                    <span className="shrink-0 text-muted-foreground">
-                      {l.count}
-                    </span>
-                  </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full bg-chart-4 transition-all"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="py-6 text-center text-muted-foreground text-sm">
-            Ainda não há dados de localização
-          </p>
-        )}
-      </CardContent>
-    </Card>
-  );
+function rateOf(clicks: number, views: number) {
+  return views > 0 ? clicks / views : 0;
 }
 
 export default function Analytics({ linkId }: { linkId: string }) {
+  const [days, setDays] = useState<(typeof DAY_OPTIONS)[number]>(30);
+
   const { data, isLoading } = api.profileLink.analytics.useQuery({
     linkId,
-    days: 30,
+    days,
   });
 
   const { data: subscribers } = api.profileLink.subscribers.useQuery({
@@ -257,18 +401,33 @@ export default function Analytics({ linkId }: { linkId: string }) {
     return null;
   }
 
-  const viewsData = data.viewsOverTime.map((v) => ({
-    date: formatDate(v.date),
-    views: v.count,
-  }));
+  const chartData = buildChartData(data.viewsOverTime, data.clicksOverTime);
 
-  const clicksData = data.clicksOverTime.map((c) => ({
-    date: formatDate(c.date),
-    clicks: c.count,
-  }));
+  const currentRate = rateOf(
+    data.periodComparison.clicks.current,
+    data.periodComparison.views.current
+  );
+  const previousRate = rateOf(
+    data.periodComparison.clicks.previous,
+    data.periodComparison.views.previous
+  );
 
   return (
     <div className="grid gap-6">
+      {/* Period selector */}
+      <div className="flex items-center justify-end gap-2">
+        {DAY_OPTIONS.map((d) => (
+          <Button
+            key={d}
+            size="sm"
+            variant={days === d ? 'default' : 'outline'}
+            onClick={() => setDays(d)}
+          >
+            {d} dias
+          </Button>
+        ))}
+      </div>
+
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
         <Card>
@@ -279,7 +438,13 @@ export default function Analytics({ linkId }: { linkId: string }) {
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="font-cal text-3xl">{data.views}</div>
+            <div className="flex items-baseline gap-2">
+              <div className="font-cal text-3xl">{data.views}</div>
+              <TrendBadge
+                current={data.periodComparison.views.current}
+                previous={data.periodComparison.views.previous}
+              />
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -290,7 +455,13 @@ export default function Analytics({ linkId }: { linkId: string }) {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="font-cal text-3xl">{data.uniqueViews}</div>
+            <div className="flex items-baseline gap-2">
+              <div className="font-cal text-3xl">{data.uniqueViews}</div>
+              <TrendBadge
+                current={data.periodComparison.uniqueViews.current}
+                previous={data.periodComparison.uniqueViews.previous}
+              />
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -301,7 +472,13 @@ export default function Analytics({ linkId }: { linkId: string }) {
             <MousePointerClick className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="font-cal text-3xl">{data.clicks}</div>
+            <div className="flex items-baseline gap-2">
+              <div className="font-cal text-3xl">{data.clicks}</div>
+              <TrendBadge
+                current={data.periodComparison.clicks.current}
+                previous={data.periodComparison.clicks.previous}
+              />
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -312,31 +489,37 @@ export default function Analytics({ linkId }: { linkId: string }) {
             <MousePointerClick className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="font-cal text-3xl">
-              {data.views > 0
-                ? `${Math.round((data.clicks / data.views) * 100)}%`
-                : '0%'}
+            <div className="flex items-baseline gap-2">
+              <div className="font-cal text-3xl">
+                {data.views > 0
+                  ? `${Math.round((data.clicks / data.views) * 100)}%`
+                  : '0%'}
+              </div>
+              <TrendBadge
+                current={Math.round(currentRate * 1000)}
+                previous={Math.round(previousRate * 1000)}
+              />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Views over time */}
+      {/* Views + clicks over time, combined */}
       <Card>
         <CardHeader>
-          <CardTitle className="font-cal">Visualizações</CardTitle>
+          <CardTitle className="font-cal">Visualizações & Cliques</CardTitle>
           <CardDescription>
-            Visualizações do perfil nos últimos 30 dias
+            Atividade do perfil nos últimos {days} dias
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {viewsData.length === 0 ? (
+          {chartData.length === 0 ? (
             <p className="py-12 text-center text-muted-foreground text-sm">
-              Ainda não há dados de visualização
+              Ainda não há dados de atividade
             </p>
           ) : (
-            <ChartContainer config={viewsConfig} className="h-[250px] w-full">
-              <AreaChart data={viewsData}>
+            <ChartContainer config={trafficConfig} className="h-[280px] w-full">
+              <AreaChart data={chartData}>
                 <CartesianGrid vertical={false} />
                 <XAxis
                   dataKey="date"
@@ -353,36 +536,6 @@ export default function Analytics({ linkId }: { linkId: string }) {
                   stroke="var(--color-views)"
                   strokeWidth={2}
                 />
-              </AreaChart>
-            </ChartContainer>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Clicks over time */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-cal">Cliques</CardTitle>
-          <CardDescription>
-            Cliques nos cards nos últimos 30 dias
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {clicksData.length === 0 ? (
-            <p className="py-12 text-center text-muted-foreground text-sm">
-              Ainda não há dados de cliques
-            </p>
-          ) : (
-            <ChartContainer config={clicksConfig} className="h-[250px] w-full">
-              <AreaChart data={clicksData}>
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="date"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                />
-                <ChartTooltip content={<ChartTooltipContent />} />
                 <Area
                   type="monotone"
                   dataKey="clicks"
@@ -501,179 +654,14 @@ export default function Analytics({ linkId }: { linkId: string }) {
         </Card>
       </div>
 
-      {/* Devices, OS, Browsers & Geography */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {/* Devices */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-cal">Dispositivos</CardTitle>
-            <CardDescription>
-              Tipos de dispositivo dos visitantes
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {data.deviceBreakdown?.devices?.length ? (
-              <div className="space-y-3">
-                {data.deviceBreakdown.devices.map((d) => {
-                  const maxCount = data.deviceBreakdown.devices[0]?.count ?? 1;
-                  const pct = Math.round((d.count / maxCount) * 100);
-                  return (
-                    <div key={d.device} className="space-y-1">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="flex items-center gap-1.5 capitalize">
-                          <Monitor className="h-3.5 w-3.5 text-muted-foreground" />
-                          {d.device}
-                        </span>
-                        <span className="shrink-0 text-muted-foreground">
-                          {d.count}
-                        </span>
-                      </div>
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                        <div
-                          className="h-full rounded-full bg-chart-4 transition-all"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="py-6 text-center text-muted-foreground text-sm">
-                Ainda não há dados de dispositivos
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Operating System */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-cal">Sistema Operacional</CardTitle>
-            <CardDescription>
-              Android, iOS, Windows, macOS, Linux...
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {data.deviceBreakdown?.os?.length ? (
-              <div className="space-y-3">
-                {data.deviceBreakdown.os.map((o) => {
-                  const maxCount = data.deviceBreakdown.os[0]?.count ?? 1;
-                  const pct = Math.round((o.count / maxCount) * 100);
-                  return (
-                    <div key={o.os} className="space-y-1">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="flex items-center gap-1.5 truncate">
-                          <Cpu className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                          {o.os}
-                        </span>
-                        <span className="shrink-0 text-muted-foreground">
-                          {o.count}
-                        </span>
-                      </div>
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                        <div
-                          className="h-full rounded-full bg-chart-3 transition-all"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="py-6 text-center text-muted-foreground text-sm">
-                Ainda não há dados de sistema operacional
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Browsers */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-cal">Navegadores</CardTitle>
-            <CardDescription>Navegadores dos visitantes</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {data.deviceBreakdown?.browsers?.length ? (
-              <div className="space-y-3">
-                {data.deviceBreakdown.browsers.map((b) => {
-                  const maxCount = data.deviceBreakdown.browsers[0]?.count ?? 1;
-                  const pct = Math.round((b.count / maxCount) * 100);
-                  return (
-                    <div key={b.browser} className="space-y-1">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="truncate">{b.browser}</span>
-                        <span className="shrink-0 text-muted-foreground">
-                          {b.count}
-                        </span>
-                      </div>
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                        <div
-                          className="h-full rounded-full bg-chart-5 transition-all"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="py-6 text-center text-muted-foreground text-sm">
-                Ainda não há dados de navegadores
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Countries */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-cal">Países</CardTitle>
-            <CardDescription>Localização dos visitantes</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {data.geoBreakdown?.length ? (
-              <div className="space-y-3">
-                {data.geoBreakdown.map((g) => {
-                  const maxCount = data.geoBreakdown[0]?.count ?? 1;
-                  const pct = Math.round((g.count / maxCount) * 100);
-                  return (
-                    <div key={g.country} className="space-y-1">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="flex items-center gap-1.5">
-                          <Globe className="h-3.5 w-3.5 text-muted-foreground" />
-                          {g.country}
-                        </span>
-                        <span className="shrink-0 text-muted-foreground">
-                          {g.count}
-                        </span>
-                      </div>
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                        <div
-                          className="h-full rounded-full bg-primary transition-all"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="py-6 text-center text-muted-foreground text-sm">
-                Ainda não há dados de localização
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Campaigns, Ad Traffic Source & Top Locations */}
+      {/* Device/OS/Browser, Location & Traffic */}
       <div className="grid gap-6 md:grid-cols-3">
-        <CampaignsCard data={data.utmBreakdown} />
-        <AdTrafficSourceCard data={data.trafficSourceBreakdown} />
-        <TopLocationsCard data={data.locationBreakdown} />
+        <DeviceTabsCard data={data.deviceBreakdown} />
+        <LocationCard data={data.locationBreakdown} />
+        <TrafficCard
+          sourceData={data.trafficSourceBreakdown}
+          campaignData={data.utmBreakdown}
+        />
       </div>
 
       {/* Email Subscribers */}
