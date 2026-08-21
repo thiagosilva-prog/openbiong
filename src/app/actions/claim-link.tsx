@@ -1,6 +1,7 @@
 'use server';
 
 import { auth } from '@/lib/auth';
+import { api } from '@/trpc/server';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
@@ -9,5 +10,14 @@ export const claimLink = async (link: string) => {
   if (!session) {
     return redirect('/app/sign-in');
   }
-  redirect(`/create-link?link=${link.toLowerCase()}`);
+
+  const slug = link.toLowerCase();
+
+  try {
+    await api.profileLink.create({ link: slug });
+  } catch {
+    return redirect('/claim-link');
+  }
+
+  redirect(`/${slug}?edit=1`);
 };

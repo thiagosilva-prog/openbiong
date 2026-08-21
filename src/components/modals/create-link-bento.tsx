@@ -9,6 +9,11 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import {
+  type SocialPlatformKey,
+  buildSocialUrl,
+  buildWhatsAppUrl,
+} from '@/lib/social-urls';
 import { api } from '@/trpc/react';
 import { LinkBentoSchema } from '@/types';
 import { Globe } from 'lucide-react';
@@ -23,71 +28,116 @@ import {
   FaLinkedinIn,
   FaTiktok,
   FaTwitch,
+  FaWhatsapp,
   FaYoutube,
 } from 'react-icons/fa';
 
 const SOCIAL_PRESETS = [
   {
+    key: 'instagram' as const,
     name: 'Instagram',
     icon: <FaInstagram size={20} />,
     color: '#E4405F',
-    placeholder: 'https://instagram.com/username',
+    placeholder: 'seu.usuario',
   },
   {
+    key: 'youtube' as const,
     name: 'YouTube',
     icon: <FaYoutube size={20} />,
     color: '#FF0000',
-    placeholder: 'https://youtube.com/@channel',
+    placeholder: 'seucanal',
   },
   {
+    key: 'twitter' as const,
     name: 'Twitter / X',
     icon: <BsTwitterX size={18} />,
     color: '#000000',
-    placeholder: 'https://x.com/username',
+    placeholder: 'seu_usuario',
   },
   {
+    key: 'tiktok' as const,
     name: 'TikTok',
     icon: <FaTiktok size={18} />,
     color: '#000000',
-    placeholder: 'https://tiktok.com/@username',
+    placeholder: 'seu.usuario',
   },
   {
+    key: 'linkedin' as const,
     name: 'LinkedIn',
     icon: <FaLinkedinIn size={20} />,
     color: '#0A66C2',
-    placeholder: 'https://linkedin.com/in/username',
+    placeholder: 'seu-usuario',
   },
   {
+    key: 'github' as const,
     name: 'GitHub',
     icon: <FaGithub size={20} />,
     color: '#333333',
-    placeholder: 'https://github.com/username',
+    placeholder: 'seu-usuario',
   },
   {
+    key: 'discord' as const,
     name: 'Discord',
     icon: <BsDiscord size={20} />,
     color: '#5A65EA',
-    placeholder: 'https://discord.gg/invite',
+    placeholder: 'convite',
   },
   {
+    key: 'twitch' as const,
     name: 'Twitch',
     icon: <FaTwitch size={18} />,
     color: '#9146FF',
-    placeholder: 'https://twitch.tv/username',
+    placeholder: 'seu_usuario',
   },
   {
+    key: 'telegram' as const,
     name: 'Telegram',
     icon: <BiLogoTelegram size={22} />,
     color: '#0088CC',
-    placeholder: 'https://t.me/username',
+    placeholder: 'seu_usuario',
   },
   {
+    key: 'threads' as const,
     name: 'Threads',
     icon: <BsThreads size={18} />,
     color: '#000000',
-    placeholder: 'https://threads.net/@username',
+    placeholder: 'seu.usuario',
   },
-] as const;
+] satisfies {
+  key: SocialPlatformKey;
+  name: string;
+  icon: React.ReactNode;
+  color: string;
+  placeholder: string;
+}[];
+
+const WHATSAPP_PRESET = {
+  name: 'WhatsApp',
+  icon: <FaWhatsapp size={20} />,
+  color: '#25D366',
+};
+
+function buildHref({
+  isWhatsApp,
+  whatsappPhone,
+  whatsappMessage,
+  activePreset,
+  input,
+}: {
+  isWhatsApp: boolean;
+  whatsappPhone: string;
+  whatsappMessage: string;
+  activePreset: { key: SocialPlatformKey } | undefined;
+  input: string;
+}) {
+  if (isWhatsApp) {
+    return buildWhatsAppUrl(whatsappPhone, whatsappMessage);
+  }
+  if (activePreset) {
+    return buildSocialUrl(activePreset.key, input);
+  }
+  return input;
+}
 
 export default function CreateLinkBentoModal({
   children,
@@ -104,8 +154,12 @@ export default function CreateLinkBentoModal({
 
   const { link } = useParams<{ link: string }>();
 
-  const [selectedPreset, setSelectedPreset] = useState<number | null>(null);
+  const [selectedPreset, setSelectedPreset] = useState<
+    number | 'whatsapp' | null
+  >(null);
   const [input, setInput] = useState('');
+  const [whatsappPhone, setWhatsappPhone] = useState('');
+  const [whatsappMessage, setWhatsappMessage] = useState('');
 
   const queryClient = api.useContext();
 
@@ -124,17 +178,39 @@ export default function CreateLinkBentoModal({
       },
       onSuccess: () => {
         setOpen(false);
-        setInput('');
-        setSelectedPreset(null);
+        resetForm();
       },
       onSettled: () => {
         queryClient.profileLink.getByLink.invalidate({ link });
       },
     });
 
+  const resetForm = () => {
+    setInput('');
+    setWhatsappPhone('');
+    setWhatsappMessage('');
+    setSelectedPreset(null);
+  };
+
+  const isWhatsApp = selectedPreset === 'whatsapp';
+  const activePreset =
+    typeof selectedPreset === 'number'
+      ? SOCIAL_PRESETS[selectedPreset]
+      : undefined;
+
+  const href = buildHref({
+    isWhatsApp,
+    whatsappPhone,
+    whatsappMessage,
+    activePreset,
+    input,
+  });
+
+  const canSubmit = isWhatsApp ? !!whatsappPhone : !!input;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input) {
+    if (!canSubmit) {
       return;
     }
     createBento({
@@ -142,13 +218,10 @@ export default function CreateLinkBentoModal({
       bento: {
         id: crypto.randomUUID(),
         type: 'link',
-        href: input,
+        href,
       },
     });
   };
-
-  const activePreset =
-    selectedPreset !== null ? SOCIAL_PRESETS[selectedPreset] : undefined;
 
   const placeholder = activePreset?.placeholder ?? 'https://example.com';
 
@@ -158,8 +231,7 @@ export default function CreateLinkBentoModal({
       onOpenChange={(v) => {
         setOpen(v);
         if (!v) {
-          setInput('');
-          setSelectedPreset(null);
+          resetForm();
         }
       }}
     >
@@ -171,7 +243,7 @@ export default function CreateLinkBentoModal({
 
         <div className="space-y-5">
           {/* Social presets grid */}
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid grid-cols-4 gap-2">
             {SOCIAL_PRESETS.map((preset, i) => (
               <button
                 key={preset.name}
@@ -192,6 +264,25 @@ export default function CreateLinkBentoModal({
                 </span>
               </button>
             ))}
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedPreset(isWhatsApp ? null : 'whatsapp');
+                setInput('');
+              }}
+              className={`flex flex-col items-center gap-1.5 rounded-xl border-2 px-1 py-3 transition-all ${
+                isWhatsApp
+                  ? 'border-primary bg-primary/5'
+                  : 'border-transparent bg-muted/50 hover:bg-muted'
+              }`}
+            >
+              <span style={{ color: WHATSAPP_PRESET.color }}>
+                {WHATSAPP_PRESET.icon}
+              </span>
+              <span className="truncate font-medium text-[10px] leading-tight">
+                {WHATSAPP_PRESET.name}
+              </span>
+            </button>
           </div>
 
           {/* Custom URL option */}
@@ -203,27 +294,46 @@ export default function CreateLinkBentoModal({
             </div>
           )}
 
-          {/* URL input */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted">
-                {activePreset ? (
-                  <span style={{ color: activePreset.color }}>
-                    {activePreset.icon}
-                  </span>
-                ) : (
-                  <Globe className="h-4 w-4 text-muted-foreground" />
-                )}
+            {isWhatsApp ? (
+              <div className="space-y-3">
+                <Input
+                  type="tel"
+                  placeholder="5511999999999"
+                  value={whatsappPhone}
+                  onChange={(e) => setWhatsappPhone(e.target.value)}
+                  className="rounded-xl"
+                  autoFocus
+                />
+                <Input
+                  type="text"
+                  placeholder="Mensagem inicial (opcional)"
+                  value={whatsappMessage}
+                  onChange={(e) => setWhatsappMessage(e.target.value)}
+                  className="rounded-xl"
+                />
               </div>
-              <Input
-                type="url"
-                placeholder={placeholder}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                className="rounded-xl"
-                autoFocus
-              />
-            </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted">
+                  {activePreset ? (
+                    <span style={{ color: activePreset.color }}>
+                      {activePreset.icon}
+                    </span>
+                  ) : (
+                    <Globe className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </div>
+                <Input
+                  type={activePreset ? 'text' : 'url'}
+                  placeholder={placeholder}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  className="rounded-xl"
+                  autoFocus
+                />
+              </div>
+            )}
 
             <div className="flex items-center justify-end gap-3">
               <Button
@@ -236,7 +346,7 @@ export default function CreateLinkBentoModal({
               </Button>
               <Button
                 type="submit"
-                disabled={!input || isPending}
+                disabled={!canSubmit || isPending}
                 className="rounded-xl px-6"
               >
                 {isPending ? 'Adicionando...' : 'Adicionar link'}

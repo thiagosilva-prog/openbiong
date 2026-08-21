@@ -153,10 +153,10 @@ export const getCardStats = async (linkId: string, days: number) => {
     return cached;
   }
 
-  // Grouped by href alone, not (bentoId, href): a card's bentoId is
-  // regenerated every time its href/title is saved through the basic-info
-  // edit form (see updateBasicInfo), so grouping by bentoId would fragment
-  // one link's click history across every id it has ever had.
+  // Grouped by href alone, not (bentoId, href): historically a card's
+  // bentoId could be regenerated on save (via the now-removed basic-info
+  // edit form), fragmenting one link's click history across every id it
+  // has ever had — grouping by href stays correct regardless.
   const [rows, totalViews, profileLink] = await Promise.all([
     db
       .select({

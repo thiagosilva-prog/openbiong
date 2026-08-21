@@ -97,10 +97,10 @@ export default function ClaimLinkForm() {
       )}
       <p className="text-center">
         <a
-          href="/"
+          href="/app"
           className="text-muted-foreground text-xs transition-colors hover:text-foreground"
         >
-          ← Voltar para a página inicial
+          ← Voltar ao painel
         </a>
       </p>
     </form>

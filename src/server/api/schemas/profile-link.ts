@@ -47,14 +47,6 @@ export const CreateLinkSchema = z.object({
   ...socialLinksFields,
 });
 
-export const UpdateBasicInfoSchema = z.object({
-  id: z.string(),
-  name: z.string().optional(),
-  bio: z.string().optional(),
-  claimedBentoIds: z.array(z.string()),
-  ...socialLinksFields,
-});
-
 export const GetByLinkSchema = z.object({
   link: z.string(),
   editSession: z.boolean().optional(),

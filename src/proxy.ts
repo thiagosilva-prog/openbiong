@@ -113,11 +113,7 @@ export async function proxy(request: NextRequest) {
     );
   }
 
-  if (
-    !sessionCookie &&
-    !isAuthPage &&
-    ['/app', '/create-link'].some((path) => pathname.startsWith(path))
-  ) {
+  if (!sessionCookie && !isAuthPage && pathname.startsWith('/app')) {
     return NextResponse.redirect(
       new URL('/app/sign-in', request.nextUrl.origin)
     );
