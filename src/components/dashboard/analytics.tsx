@@ -165,7 +165,7 @@ function DeviceTabsCard({ data }: { data: DeviceBreakdown | undefined }) {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="device">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-3 gap-1">
             <TabsTrigger value="device">Dispositivo</TabsTrigger>
             <TabsTrigger value="os">Sistema</TabsTrigger>
             <TabsTrigger value="browser">Navegador</TabsTrigger>

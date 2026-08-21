@@ -26,13 +26,26 @@ export const HTML_CARD_SIZES = ['2x2', '4x1', '4x2', '2x4', '4x4'] as const;
 const SANDBOX =
   'allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox';
 
-function HtmlPreview({ code }: { code: string }) {
+function HtmlPreview({
+  code,
+  interactive = true,
+}: {
+  code: string;
+  interactive?: boolean;
+}) {
   return (
     <iframe
       srcDoc={code}
       sandbox={SANDBOX}
       title="Pré-visualização do HTML"
-      className="h-full w-full rounded-2xl border-0 bg-white"
+      className={cn(
+        'h-full w-full rounded-2xl border-0 bg-white',
+        // While editing, the card's own drag/resize/delete overlay needs to
+        // receive every mouse event — an iframe is a separate document, and
+        // even with a higher z-index above it, the browser still routes
+        // hover/click straight into the iframe unless it's told not to.
+        !interactive && 'pointer-events-none'
+      )}
     />
   );
 }
@@ -126,7 +139,7 @@ export default function HtmlCard({
         )}
 
         {hasContent ? (
-          <HtmlPreview code={bento.code ?? ''} />
+          <HtmlPreview code={bento.code ?? ''} interactive={!editable} />
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-muted-foreground">
             <Code2 className="h-6 w-6" />
