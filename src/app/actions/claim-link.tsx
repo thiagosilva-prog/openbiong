@@ -7,9 +7,7 @@ import { redirect } from 'next/navigation';
 export const claimLink = async (link: string) => {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) {
-    return redirect(
-      `/app/sign-up?redirectUrl=/create-link?link=${link.toLowerCase()}`
-    );
+    return redirect('/app/sign-in');
   }
   redirect(`/create-link?link=${link.toLowerCase()}`);
 };

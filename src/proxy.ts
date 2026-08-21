@@ -103,8 +103,15 @@ export async function proxy(request: NextRequest) {
 
   // --- Auth guard ---
   const sessionCookie = getSessionCookie(request);
-  const isAuthPage =
-    pathname.startsWith('/app/sign-in') || pathname.startsWith('/app/sign-up');
+  const isAuthPage = pathname.startsWith('/app/sign-in');
+
+  // Internal tool, no marketing site: the root URL always resolves straight
+  // to either the dashboard or the login screen, never a landing page.
+  if (pathname === '/') {
+    return NextResponse.redirect(
+      new URL(sessionCookie ? '/app' : '/app/sign-in', request.nextUrl.origin)
+    );
+  }
 
   if (
     !sessionCookie &&
@@ -112,7 +119,7 @@ export async function proxy(request: NextRequest) {
     ['/app', '/create-link'].some((path) => pathname.startsWith(path))
   ) {
     return NextResponse.redirect(
-      new URL('/app/sign-up', request.nextUrl.origin)
+      new URL('/app/sign-in', request.nextUrl.origin)
     );
   }
 
