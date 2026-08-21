@@ -1,5 +1,6 @@
 'use client';
 
+import DeleteLinkConfirmModal from '@/components/modals/delete-link-confirm';
 import LinkQRModal from '@/components/modals/link-qr-modal';
 import { Button } from '@/components/ui/button';
 import { type RouterOutputs, api } from '@/trpc/react';
@@ -90,13 +91,16 @@ export function DashboardLinkCard({ link }: { link: ProfileLink }) {
             <QrCode className="h-4 w-4" />
           </Button>
         </LinkQRModal>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-destructive hover:text-destructive"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        <DeleteLinkConfirmModal linkSlug={link.link} linkName={link.name}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-destructive hover:text-destructive"
+            title="Excluir"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </DeleteLinkConfirmModal>
       </div>
     </div>
   );

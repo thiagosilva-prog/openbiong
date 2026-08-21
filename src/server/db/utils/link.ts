@@ -3,7 +3,7 @@ import { type BentoSchema, type LinkBento, ValidLinkSchema } from '@/types';
 import type * as z from 'zod';
 import { type InferSelectModel, eq, sql } from '..';
 import { db } from '../db';
-import { link } from '../schema';
+import { link, linkClick, linkView } from '../schema';
 
 type SelectProfileLinkColumns = {
   id?: boolean | undefined;
@@ -174,6 +174,14 @@ export const updateProfileLink = async (data: {
 };
 
 export const deleteProfileLink = async (inputLink: string) => {
+  const profileLink = await getProfileLinkByLink(inputLink, { id: true });
+  if (profileLink) {
+    // link_view/link_click have no FK cascade (unlike email_subscriber),
+    // so their rows would otherwise be orphaned forever after this delete.
+    await db.delete(linkView).where(eq(linkView.linkId, profileLink.id));
+    await db.delete(linkClick).where(eq(linkClick.linkId, profileLink.id));
+  }
+
   await db.delete(link).where(eq(link.link, inputLink)).execute();
 
   try {
