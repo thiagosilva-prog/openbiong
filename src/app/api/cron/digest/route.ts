@@ -1,4 +1,5 @@
 import AnalyticsDigest from '@/components/emails/analytics-digest';
+import { createUnsubscribeToken } from '@/lib/unsubscribe-token';
 import { db } from '@/server/db/db';
 import { emailSubscriber, linkClick, linkView } from '@/server/db/schema';
 import { sendEmail } from '@/server/emails';
@@ -125,7 +126,7 @@ export async function GET(req: NextRequest) {
 
     const topReferrer = await getTopReferrerForLinks(linkIds, oneWeekAgo);
     const primaryLink = links[0];
-    const unsubscribeUrl = `https://openbio.app/api/unsubscribe?userId=${u.id}&token=${encodeURIComponent(u.email)}`;
+    const unsubscribeUrl = `https://openbio.app/api/unsubscribe?userId=${u.id}&token=${createUnsubscribeToken(u.id)}`;
 
     await sendEmail({
       to: [u.email],

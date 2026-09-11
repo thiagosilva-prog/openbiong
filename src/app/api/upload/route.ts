@@ -53,10 +53,18 @@ export async function POST(request: NextRequest) {
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
-  const optimized = await sharp(buffer)
-    .resize(400, 400, { fit: 'cover' })
-    .webp({ quality: 85 })
-    .toBuffer();
+  let optimized: Buffer;
+  try {
+    optimized = await sharp(buffer)
+      .resize(400, 400, { fit: 'cover' })
+      .webp({ quality: 85 })
+      .toBuffer();
+  } catch {
+    return NextResponse.json(
+      { error: 'Arquivo de imagem inválido ou não suportado' },
+      { status: 400 }
+    );
+  }
 
   const fileName = file.name.replace(FILE_EXT_RE, '.webp');
   const path = `avatars/${profileLinkId}/${fileName}`;

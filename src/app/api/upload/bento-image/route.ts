@@ -22,10 +22,18 @@ export async function POST(request: NextRequest) {
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
-  const optimized = await sharp(buffer)
-    .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
-    .webp({ quality: 80 })
-    .toBuffer();
+  let optimized: Buffer;
+  try {
+    optimized = await sharp(buffer)
+      .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toBuffer();
+  } catch {
+    return NextResponse.json(
+      { error: 'Arquivo de imagem inválido ou não suportado' },
+      { status: 400 }
+    );
+  }
 
   const fileName = file.name.replace(FILE_EXT_RE, '.webp');
   const path = `bento-images/${session.user.id}/${crypto.randomUUID()}-${fileName}`;

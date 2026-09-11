@@ -1,3 +1,4 @@
+import { verifyUnsubscribeToken } from '@/lib/unsubscribe-token';
 import { db } from '@/server/db/db';
 import { user } from '@/server/db/schema';
 import { eq } from 'drizzle-orm';
@@ -7,13 +8,12 @@ export async function GET(req: NextRequest) {
   const userId = req.nextUrl.searchParams.get('userId');
   const token = req.nextUrl.searchParams.get('token');
 
-  if (!userId || !token) {
-    return new NextResponse('Missing parameters', { status: 400 });
+  if (!userId || !token || !verifyUnsubscribeToken(userId, token)) {
+    return new NextResponse('Invalid link', { status: 400 });
   }
 
-  // Verify token matches user email (simple check)
   const found = await db.query.user.findFirst({
-    where: (u, { eq, and }) => and(eq(u.id, userId), eq(u.email, token)),
+    where: (u, { eq }) => eq(u.id, userId),
     columns: { id: true },
   });
 
